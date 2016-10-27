@@ -8,6 +8,8 @@
     <artifactId>puppy</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+git
+
     <build>
         <plugins>
             <plugin>
