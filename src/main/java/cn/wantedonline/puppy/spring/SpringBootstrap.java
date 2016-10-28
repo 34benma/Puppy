@@ -39,7 +39,9 @@ public class SpringBootstrap {
             throw new IllegalAccessError("ApplicationContext has instanced");
         }
         CONTEXT = new ClassPathXmlApplicationContext(springConfigLocations);
-
+        ConfigAnnotationBeanPostProcessor pp = BeanUtil.getTypedBean(CONTEXT, "configAnnotationBeanPostProcessor");
+        pp.postProcessAfterBootstrap(CONTEXT);// 真正使用Bootstrap来调AfterConfig
         return CONTEXT;
     }
+
 }
