@@ -17,6 +17,8 @@
 package cn.wantedonline.puppy.spring;
 
 import cn.wantedonline.puppy.exception.ServerConfigError;
+import cn.wantedonline.puppy.spring.annotation.AfterBootstrap;
+import cn.wantedonline.puppy.spring.annotation.AfterConfig;
 import cn.wantedonline.puppy.spring.annotation.Config;
 import cn.wantedonline.puppy.util.*;
 import org.slf4j.Logger;
@@ -298,7 +300,6 @@ public class ConfigAnnotationBeanPostProcessor extends InstantiationAwareBeanPos
         }
     }
 
-    private SimpleTypeConverter typeConverter = new SimpleTypeConverter();
     public static final String RESET_HISTORY_FMT = "%-20s %40s.%-40s %-20s %-20s\n";
     // 因为要处理 非单例的情况,所以要加上同步
     private Map<Method, Object> afterConfigCache = Collections.synchronizedMap(new LinkedHashMap<Method, Object>());// 所有配置了@AfterConfig的Method-Bean映射
@@ -371,7 +372,7 @@ public class ConfigAnnotationBeanPostProcessor extends InstantiationAwareBeanPos
                     }
                     ReflectionUtils.makeAccessible(method);
                     ReflectionUtils.invokeMethod(method, bean);
-                    log.debug("@{} {}.{}", new Object[] {
+                    logger.debug("@{} {}.{}", new Object[] {
                             AfterConfig.class.getSimpleName(),
                             bean.getClass().getSimpleName(),
                             method.getName()
@@ -408,7 +409,7 @@ public class ConfigAnnotationBeanPostProcessor extends InstantiationAwareBeanPos
                     }
                     ReflectionUtils.makeAccessible(method);
                     ReflectionUtils.invokeMethod(method, bean);
-                    log.debug("@{} {}.{}", new Object[] {
+                    logger.debug("@{} {}.{}", new Object[] {
                             AfterBootstrap.class.getSimpleName(),
                             bean.getClass().getSimpleName(),
                             method.getName()
@@ -517,7 +518,7 @@ public class ConfigAnnotationBeanPostProcessor extends InstantiationAwareBeanPos
                 }
             }
         } catch (IOException e1) {
-            log.error("", e1);
+            logger.error("", e1);
             if (info != null) {
                 info.append(e1.getClass().getName()).append(":").append(e1.getMessage()).append("\n");
             }
