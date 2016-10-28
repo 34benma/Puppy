@@ -92,8 +92,6 @@ public class DateUtil {
                     if (zone != null) {
                         df.setTimeZone(zone);
                     }
-                    // df.setCalendar(null);
-                    // df.setNumberFormat(null);
                     return df;
                 } catch (Exception e) {
                     return null;
