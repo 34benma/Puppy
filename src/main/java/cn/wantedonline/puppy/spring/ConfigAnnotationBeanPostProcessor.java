@@ -37,8 +37,6 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.*;
 
-import static jdk.nashorn.internal.runtime.regexp.joni.Config.log;
-
 /**
  * Created by wangcheng on 2016/10/27.
  */
@@ -218,7 +216,6 @@ public class ConfigAnnotationBeanPostProcessor extends InstantiationAwareBeanPos
                         if (info != null) {
                             info.append("NEWVALUE:").append(realValueToString).append("\n");
                         }
-                        // log.warn("set config:{}.{},oriValue:{},value:{},init:{},tmp:{}", new Object[] { bean.getClass().getSimpleName(), field.getName(), orivalue, realvalue, init, tmp });
                         return true;
                     }
                     if (info != null) {
@@ -444,7 +441,7 @@ public class ConfigAnnotationBeanPostProcessor extends InstantiationAwareBeanPos
     }
 
     /**
-     * 输出当前的Confi配置信息
+     * 输出当前的Config配置信息
      */
     public StringBuilder printCurrentConfig(StringBuilder sb) {
         sb.append("GUARDED KEY:\n");
@@ -486,7 +483,6 @@ public class ConfigAnnotationBeanPostProcessor extends InstantiationAwareBeanPos
      */
     public void reloadConfig(StringBuilder info) {
         try {
-            // TODO:这里如果能先判断时间戳的话,就最好了
             // 加载配置文件
             Properties props = propertyConfigurer.reload();
             boolean settted = false; // 赋值
