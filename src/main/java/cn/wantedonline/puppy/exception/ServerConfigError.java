@@ -14,11 +14,22 @@
  *   limitations under the License.
  */
 
-package cn.wantedonline.puppy.httpserver;
+package cn.wantedonline.puppy.exception;
 
 /**
- * Created by wangcheng on 2016/10/27.
+ * Created by louiswang on 16/10/28.
  */
-public class Bootstrap {
+public class ServerConfigError extends Error {
+    private static final long serialVersionUID = 3035413633158576493L;
 
+    private String errorMessage;
+
+    public ServerConfigError(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
+
+    @Override
+    public String getMessage() {
+        return errorMessage;
+    }
 }

@@ -14,11 +14,34 @@
  *   limitations under the License.
  */
 
-package cn.wantedonline.puppy.httpserver;
+package cn.wantedonline.puppy.spring.annotation;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Created by wangcheng on 2016/10/27.
+ * Created by louiswang on 16/10/28.
  */
-public class Bootstrap {
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface Config {
 
+    String value() default "";
+
+    /**
+     * 是否可重设
+     */
+    boolean resetable() default false;
+
+    /**
+     * elements之间分隔符
+     */
+    String split() default ",";
+
+    /**
+     * key-value 分隔符
+     */
+    String splitKeyValue() default ":";
 }
