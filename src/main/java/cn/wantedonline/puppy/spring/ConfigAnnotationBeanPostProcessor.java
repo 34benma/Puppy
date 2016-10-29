@@ -27,6 +27,7 @@ import org.springframework.beans.SimpleTypeConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessorAdapter;
 import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
@@ -40,6 +41,7 @@ import java.util.*;
 /**
  * Created by wangcheng on 2016/10/27.
  */
+@Component
 public class ConfigAnnotationBeanPostProcessor extends InstantiationAwareBeanPostProcessorAdapter {
 
     private static Logger logger = Log.getLogger();
@@ -354,14 +356,6 @@ public class ConfigAnnotationBeanPostProcessor extends InstantiationAwareBeanPos
                 }
                 if (cfg != null) {
                     if (Modifier.isStatic(method.getModifiers()) && !Modifier.isFinal(bean.getClass().getModifiers())) {
-                        // 注意,这里一定要限制这么严格
-                        // public class AClass {
-                        // @AfterConfig
-                        // public static void init() {
-                        // //如果不限制Aclass是final类,那么当有BClass extend AClass,且也被Spring初始化时,这里会被调用两次,会造成不必要的麻烦
-                        // //因为ReflectionUtils.doWithMethods及ReflectionUtils.doWithFields时,会找其所有父类
-                        // }
-                        // }
                         throw new IllegalStateException("@" + AfterConfig.class.getSimpleName() + " annotation on static methods,it's class must be final");
                     }
                     if (method.getParameterTypes().length != 0) {

@@ -40,7 +40,7 @@ public class SpringBootstrap {
         }
         CONTEXT = new ClassPathXmlApplicationContext(springConfigLocations);
         ConfigAnnotationBeanPostProcessor pp = BeanUtil.getTypedBean(CONTEXT, "configAnnotationBeanPostProcessor");
-        pp.postProcessAfterBootstrap(CONTEXT);// 真正使用Bootstrap来调AfterConfig
+        pp.postProcessAfterBootstrap(CONTEXT);
         return CONTEXT;
     }
 
