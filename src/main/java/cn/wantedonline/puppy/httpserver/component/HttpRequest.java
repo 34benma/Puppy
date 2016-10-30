@@ -392,7 +392,7 @@ public class HttpRequest extends DefaultHttpRequest {
     public void addParameters(Object... keyvalue) {
         MapUtil.checkKeyValueLength(keyvalue);
         Map<String, List<String>> params = getParameters();
-        if (Collections.EMPTY_MAP == params) { // emptyMap 不可修改，要改掉
+        if (Collections.EMPTY_MAP == params) {
             params = parameters = new HashMap<String, List<String>>();
         }
         for (int i = 0; i < keyvalue.length; i++) {
@@ -475,9 +475,10 @@ public class HttpRequest extends DefaultHttpRequest {
         return ((InetSocketAddress) remoteAddress).getPort();
     }
 
-    public void offerChunk(HttpChunk chunk) throws Exception {
-        getHttpPostRequestDecoder().offer(chunk);
-    }
+    //TODO: netty4 不再有HttpChunk，需要寻找解决办法，目前puppy中不需要使用该方法
+//    public void offerChunk(HttpChunk chunk) throws Exception {
+//        getHttpPostRequestDecoder().offer(chunk);
+//    }
 
     public void setCharset4QueryStringDecoder(Charset charset4QueryStringDecoder) {
         this.charset4QueryStringDecoder = charset4QueryStringDecoder;
@@ -500,7 +501,7 @@ public class HttpRequest extends DefaultHttpRequest {
 
     public String getUrl() {
         if (url == null) {
-            String host = getHeader(HttpHeaders.Names.HOST);
+            String host = headers().get(HttpHeaders.Names.HOST);
             String port = getLocalPort() == 80 ? "" : ":" + getLocalPort();
             url = "http://" + (StringTools.isEmpty(host) ? getLocalIP() + port : host) + getUri();
         }
