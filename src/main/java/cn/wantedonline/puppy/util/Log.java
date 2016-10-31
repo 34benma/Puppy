@@ -23,20 +23,22 @@ import org.slf4j.LoggerFactory;
  * Created by wangcheng on 2016/10/27.
  */
 public class Log {
+
+    private Log() {}
+
     public static Logger getLogger() {
-        return LoggerFactory.getLogger(Thread.currentThread().getStackTrace()[2].getClassName());
+        return LoggerFactory.getLogger(java.lang.Thread.currentThread().getStackTrace()[2].getClassName());
     }
 
     public static Logger getLogger(Object obj) {
         if (obj instanceof Class<?>) {
-            return LoggerFactory.getLogger((Class<?>)obj);
+            return LoggerFactory.getLogger((Class<?>) obj);
         }
-
         return LoggerFactory.getLogger(obj.getClass().getName());
     }
 
-    public static Logger getLogger(String name) {
-        return LoggerFactory.getLogger(name);
+    public static Logger getLogger(String str) {
+        return LoggerFactory.getLogger(str);
     }
 
     public static Logger getLoggerWith(Object obj, String prefix, String suffix) {
@@ -44,7 +46,22 @@ public class Log {
     }
 
     public static Logger getLoggerWith(String prefix, String suffix) {
-        return LoggerFactory.getLogger(prefix + "." + Thread.currentThread().getStackTrace()[2].getClassName() + "." + suffix);
+        return LoggerFactory.getLogger(prefix + "." + java.lang.Thread.currentThread().getStackTrace()[2].getClassName() + "." + suffix);
     }
 
+    public static Logger getLoggerWithPrefix(Object obj, String prefix) {
+        return LoggerFactory.getLogger(prefix + "." + obj.getClass().getName());
+    }
+
+    public static Logger getLoggerWithPrefix(String prefix) {
+        return LoggerFactory.getLogger(prefix + "." + java.lang.Thread.currentThread().getStackTrace()[2].getClassName());
+    }
+
+    public static Logger getLoggerWithSuffix(Object obj, String suffix) {
+        return LoggerFactory.getLogger(obj.getClass().getName() + "." + suffix);
+    }
+
+    public static Logger getLoggerWithSuffix(String suffix) {
+        return LoggerFactory.getLogger(java.lang.Thread.currentThread().getStackTrace()[2].getClassName() + "." + suffix);
+    }
 }
