@@ -40,7 +40,14 @@ public class SystemMonitor {
         }
         final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
         boolean cpuTimeEnable = false;
-
-
+        try {
+            cpuTimeEnable = threadMXBean.isThreadCpuTimeEnabled();
+        } catch (UnsupportedOperationException e) {}
+        boolean cpuTimeSupported = threadMXBean.isThreadCpuTimeSupported();
+        if (cpuTimeEnable && cpuTimeSupported) {
+            logger.info("ThreadCpuTimeMonitor    ON,interval:{}sec", new Object[] {
+                    interval
+            });
+        }
     }
 }
