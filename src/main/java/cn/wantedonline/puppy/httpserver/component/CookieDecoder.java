@@ -18,8 +18,8 @@ package cn.wantedonline.puppy.httpserver.component;
 
 import cn.wantedonline.puppy.httpserver.util.CaseIgnoringComparator;
 import cn.wantedonline.puppy.util.Log;
-import io.netty.handler.codec.http.Cookie;
-import io.netty.handler.codec.http.DefaultCookie;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.DefaultCookie;
 import org.slf4j.Logger;
 
 import java.util.Set;

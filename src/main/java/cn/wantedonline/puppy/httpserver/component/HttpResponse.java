@@ -16,11 +16,26 @@
 
 package cn.wantedonline.puppy.httpserver.component;
 
-import io.netty.handler.codec.http.DefaultHttpMessage;
+import cn.wantedonline.puppy.httpserver.util.CharsetTools;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.cookie.Cookie;
+
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by wangcheng on 2016/10/30.
  */
-public class HttpResponse extends DefaultHttpMessage implements HttpResponse {
+public class HttpResponse extends DefaultFullHttpResponse {
+    public enum ContentType {
+        html,json,plain,xml,lua
+    }
+
+    private Charset contentCharset = CharsetTools.UTF_8;
+    private int contentLength = -1;
+    private boolean contentSetted = false;
+    private List<Cookie> cookies = new ArrayList<>(1);
+    private long createTime = System.currentTimeMillis();
 
 }

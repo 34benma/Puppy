@@ -22,9 +22,15 @@ import cn.wantedonline.puppy.httpserver.util.CollectionUtil;
 import cn.wantedonline.puppy.httpserver.util.IPGetterHelper;
 import cn.wantedonline.puppy.httpserver.util.MapUtil;
 import cn.wantedonline.puppy.util.*;
+import cn.wantedonline.puppy.util.HttpUtil;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.EmptyByteBuf;
+import io.netty.buffer.SwappedByteBuf;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.multipart.*;
+
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -35,12 +41,11 @@ import java.nio.charset.Charset;
 import java.util.*;
 import java.util.Map.Entry;
 
-import static jdk.nashorn.internal.runtime.regexp.joni.Config.log;
 
 /**
  * Created by wangcheng on 2016/10/30.
  */
-public class HttpRequest extends DefaultHttpRequest {
+public class HttpRequest extends DefaultFullHttpRequest {
     private static final String COOKIE = "COOKIE";
     private static final HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
     private static final Logger logger = Log.getLogger();
@@ -154,7 +159,7 @@ public class HttpRequest extends DefaultHttpRequest {
             throw new IllegalArgumentException("cookieName isEmpty:[" + cookieName + "]");
         }
         Cookie cookie = getCookie(cookieName);
-        return cookie == null ? null : cookie.getValue();
+        return cookie == null ? null : cookie.value();
     }
 
     public String getCookieValue(String cookieName, String defaultValue) {
@@ -557,7 +562,7 @@ public class HttpRequest extends DefaultHttpRequest {
         if (EmptyChecker.isNotEmpty(cookies)) {
             r.append("COOKIES  :\n");
             for (Cookie c : cookies) {
-                r.append(String.format(fmt, c.getName(), c.getValue()));
+                r.append(String.format(fmt, c.name(), c.value()));
             }
         }
         return r;
@@ -618,12 +623,12 @@ public class HttpRequest extends DefaultHttpRequest {
     }
 
     public String getContentString(Charset charset) {
-        ChannelBuffer content = con;
+        ByteBuf content = content();
         return new String(content.array(), charset);
     }
 
     public String getContentString() {
-        ByteBuf content = getContent();
+        ByteBuf content = content();
         if (content.hasArray()) {
             return new String(content.array(), charset4ContentDecoder);
         }
@@ -635,13 +640,13 @@ public class HttpRequest extends DefaultHttpRequest {
     }
 
     public ByteBuf getPostContent(ByteOrder byteOrder) {
-        ByteBuf content = getContent();
-        if (content.readable()) {
+        ByteBuf content = content();
+        if (content.isReadable()) {
             byte[] contentArray = new byte[content.readableBytes()];
             content.getBytes(content.readerIndex(), contentArray);
-            return ByteBuf.copiedBuffer(byteOrder, contentArray);
+            return new SwappedByteBuf(content).order(byteOrder).readBytes(contentArray);
         }
-        return ByteBuf.EMPTY_BUFFER;
+        return new EmptyByteBuf(ByteBufAllocator.DEFAULT);
     }
 
     public Charset getCharset4ContentDecoder() {
@@ -653,7 +658,7 @@ public class HttpRequest extends DefaultHttpRequest {
     }
 
     public String getHeader(String name, String defaultValue) {
-        String value = getHeader(name);
+        String value = headers().get(name);
         if (null == value) {
             return defaultValue;
         }

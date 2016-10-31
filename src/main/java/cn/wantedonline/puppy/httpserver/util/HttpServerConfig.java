@@ -16,6 +16,7 @@
 
 package cn.wantedonline.puppy.httpserver.util;
 
+import cn.wantedonline.puppy.httpserver.component.HttpResponse;
 import cn.wantedonline.puppy.util.Log;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
@@ -27,5 +28,6 @@ import org.springframework.stereotype.Service;
 public final class HttpServerConfig {
     public static final Logger ALARMLOG  = Log.getLogger("alarm.cn.wantedonline.puppy.server");
     public static final int CORE_PROCESSOR_NUM = Runtime.getRuntime().availableProcessors();
-    private static Cont
+    private static HttpResponse.ContentType respInnerContentType = HttpResponse.ContentType.json;
+
 }
