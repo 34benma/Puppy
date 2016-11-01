@@ -43,7 +43,7 @@ public class MailTemplate {
      */
     private String fromAddress;
     /**
-     * 发件人名称，如 迅雷个人中心
+     * 发件人名称
      */
     private String fromName = "";
     /**
