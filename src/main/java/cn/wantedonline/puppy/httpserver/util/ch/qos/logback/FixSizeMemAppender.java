@@ -139,7 +139,7 @@ public class FixSizeMemAppender<E> extends UnsynchronizedAppenderBase<E> {
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
-            for (Iterator<String> iterator = queue.iterator(); iterator.hasNext()) {
+            for (Iterator<String> iterator = queue.iterator(); iterator.hasNext();) {
                 sb.append(iterator.next());
             }
             return sb.toString();
