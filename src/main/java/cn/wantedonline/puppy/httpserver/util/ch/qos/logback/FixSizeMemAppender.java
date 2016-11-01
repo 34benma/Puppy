@@ -16,11 +16,14 @@
 
 package cn.wantedonline.puppy.httpserver.util.ch.qos.logback;
 
+import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Layout;
 import ch.qos.logback.core.UnsynchronizedAppenderBase;
+import cn.wantedonline.puppy.httpserver.util.concurrent.ConcurrentCircularQueue;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -31,16 +34,16 @@ import java.util.Map;
  * Created by wangcheng on 2016/10/31.
  */
 public class FixSizeMemAppender<E> extends UnsynchronizedAppenderBase<E> {
+    protected Layout<E> layout;
+    protected int size = 100;
+    protected int log_size = 500;
+    private Executor exe = Executors.newSingleThreadExecutor();
+
     public static class FixSizeLog {
         private String loggerName;
         private String[] bufferedLog;
         private AtomicInteger index = new AtomicInteger(0);
         private int size;
-
-        protected Layout<E> layout;
-        protected int size = 100;
-        protected int log_size = 500;
-        private Executor exe = Executors.newSingleThreadExecutor();
 
         private FixSizeLog() {}
 
@@ -111,6 +114,85 @@ public class FixSizeMemAppender<E> extends UnsynchronizedAppenderBase<E> {
 
     public static class ScaleableLog extends FixSizeLog {
         private String loggerName;
-        private Concurrent
+        private ConcurrentCircularQueue<String> queue;
+
+        public ScaleableLog(String loggerName, int size) {
+            this.loggerName = loggerName.intern();
+            this.queue = new ConcurrentCircularQueue<>(size);
+        }
+
+        @Override
+        public void log(String msg) {
+            queue.addToTail(msg);
+        }
+
+        @Override
+        public String getLoggerName() {
+            return loggerName;
+        }
+
+        @Override
+        public void setSize(int size) {
+            queue.setMaxSize(size);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            for (Iterator<String> iterator = queue.iterator(); iterator.hasNext()) {
+                sb.append(iterator.next());
+            }
+            return sb.toString();
+        }
+
+        @Override
+        public String tail(int num) {
+            return toString();
+        }
+
+        @Override
+        public String sub(int begin, int end) {
+            return toString();
+        }
+    }
+
+    @Override
+    protected void append(final E e) {
+        if (e instanceof LoggingEvent) {
+            exe.execute(new Runnable() {
+                @Override
+                public void run() {
+                    LoggingEvent le = (LoggingEvent) e;
+                    String loggerName = le.getLoggerName();
+                    FixSizeLog fsl = FIX_SIZE_LOG_MAP.get(loggerName);
+                    int m = FIX_SIZE_LOG_MAP.size() / log_size;
+                    boolean needShrink = m > 0;
+                    int newSize = needShrink ? size /(m+1) : size;
+                    if (null == fsl) {
+                        fsl = new ScaleableLog(loggerName, newSize);
+                        FIX_SIZE_LOG_MAP.put(loggerName, fsl);
+                    } else if (needShrink) {
+                        fsl.setSize(newSize);
+                    }
+                    fsl.log(layout.doLayout(e));
+                }
+            });
+        }
+    }
+
+    public Layout<E> getLayout() {
+        return layout;
+    }
+
+    public void setLayout(Layout<E> layout) {
+        this.layout = layout;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+
+    public int getSize() {
+        return size;
     }
 }
