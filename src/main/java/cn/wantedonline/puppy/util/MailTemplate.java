@@ -24,6 +24,8 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 
+import javax.mail.internet.MimeMessage;
+
 /**
  * 发送邮件的模板类，需要在初始化时注入一个JavaMailSender的实例
  *
