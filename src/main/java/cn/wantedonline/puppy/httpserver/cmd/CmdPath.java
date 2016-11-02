@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-package cn.wantedonline.puppy.httpserver.annotation;
+package cn.wantedonline.puppy.httpserver.cmd;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
@@ -36,8 +36,11 @@ import java.lang.annotation.Target;
 })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface CmdMapper {
+public @interface CmdPath {
 
+    /**
+     * 给CMD取的别名
+     */
     public abstract String[] value();
 
 }

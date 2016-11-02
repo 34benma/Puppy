@@ -16,28 +16,22 @@
 
 package cn.wantedonline.puppy.httpserver.annotation;
 
-import java.lang.annotation.Documented;
+import cn.wantedonline.puppy.httpserver.component.HttpResponse;
+
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * <pre>
- * 对一个CMD的请求URL设置别名
- * 注意:
- * CmdPath  处理的是 局部相对路径
- * CmdMapper处理的是 绝对路径
+ * 接口返回格式
  * 
- * 配置CmdOverride来使用，可以把原来默认的名字覆盖掉
+ * @author ZengDong
  */
-@Target({
-    java.lang.annotation.ElementType.TYPE,
-    java.lang.annotation.ElementType.METHOD
-})
 @Retention(RetentionPolicy.RUNTIME)
-@Documented
-public @interface CmdMapper {
+@Target(ElementType.METHOD)
+public @interface CmdContentType {
 
-    public abstract String[] value();
+    HttpResponse.ContentType[] value() default HttpResponse.ContentType.json;
 
 }

@@ -16,28 +16,36 @@
 
 package cn.wantedonline.puppy.httpserver.annotation;
 
-import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * <pre>
- * 对一个CMD的请求URL设置别名
- * 注意:
- * CmdPath  处理的是 局部相对路径
- * CmdMapper处理的是 绝对路径
- * 
- * 配置CmdOverride来使用，可以把原来默认的名字覆盖掉
+ *         <pre>
+ * 接口有两种：
+ * 业务相关【用户用】
+ * 系统相关【开发用】  用@CmdAdmin来标识
  */
-@Target({
-    java.lang.annotation.ElementType.TYPE,
-    java.lang.annotation.ElementType.METHOD
-})
 @Retention(RetentionPolicy.RUNTIME)
-@Documented
-public @interface CmdMapper {
+@Target(ElementType.METHOD)
+public @interface CmdAdmin {
 
-    public abstract String[] value();
+    public enum CmdAdminType {
+        /**
+         * 后台统计接口
+         */
+        STAT,
+        /**
+         * 后台操作接口
+         */
+        OPER,
+    }
 
+    /**
+     * 是否上报到 armero，供统一查看【一般比较常用接口上报到armero】
+     */
+    boolean reportToArmero() default false;
+
+    CmdAdminType type() default CmdAdminType.STAT;
 }

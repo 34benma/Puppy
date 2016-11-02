@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-package cn.wantedonline.puppy.httpserver.annotation;
+package cn.wantedonline.puppy.httpserver.cmd;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
@@ -22,13 +22,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * <pre>
- * 对一个CMD的请求URL设置别名
- * 注意:
- * CmdPath  处理的是 局部相对路径
- * CmdMapper处理的是 绝对路径
- * 
- * 配置CmdOverride来使用，可以把原来默认的名字覆盖掉
+ * 配置CmdPath或CmdMapper来作用，覆盖掉原来的默认名
+ *
  */
 @Target({
     java.lang.annotation.ElementType.TYPE,
@@ -36,8 +31,5 @@ import java.lang.annotation.Target;
 })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface CmdMapper {
-
-    public abstract String[] value();
-
+public @interface CmdOverride {
 }
