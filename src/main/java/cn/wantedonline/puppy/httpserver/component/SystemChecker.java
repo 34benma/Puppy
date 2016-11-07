@@ -31,8 +31,6 @@ import org.springframework.stereotype.Service;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static jdk.nashorn.internal.runtime.regexp.joni.Config.log;
-
 /**
  * Created by louiswang on 16/11/2.
  */
