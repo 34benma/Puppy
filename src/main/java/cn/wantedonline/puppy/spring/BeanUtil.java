@@ -16,11 +16,8 @@
 
 package cn.wantedonline.puppy.spring;
 
-import cn.wantedonline.puppy.util.Log;
-import org.slf4j.Logger;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;
@@ -32,7 +29,6 @@ import java.util.Set;
  * Created by wangcheng on 2016/10/27.
  */
 public class BeanUtil {
-    private static final Logger logger = Log.getLogger();
     private static final Set<Type> basicTypes = new HashSet<>();
 
     static {
@@ -99,7 +95,6 @@ public class BeanUtil {
         try {
             return getTypedBean(clazz);
         } catch (Throwable e) {
-            logger.info("{}",e.toString());
             return null;
         }
     }
@@ -114,7 +109,6 @@ public class BeanUtil {
         try {
             return getTypedBean(name);
         } catch (Throwable e) {
-            logger.info("{}",e.toString());
             return null;
         }
     }
@@ -129,7 +123,6 @@ public class BeanUtil {
         try {
             return getTypedBeans(clazz);
         } catch (Throwable e) {
-            logger.info("{}", e.toString());
             return null;
         }
     }
