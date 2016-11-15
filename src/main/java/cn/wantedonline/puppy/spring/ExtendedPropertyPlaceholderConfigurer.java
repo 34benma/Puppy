@@ -24,7 +24,11 @@ import java.io.IOException;
 import java.util.Properties;
 
 /**
- * Created by wangcheng on 2016/10/28.
+ * <pre>
+ *     拓展spring的属性配置文件加载器
+ * </pre>
+ * @author wangcheng
+ * @since V0.1.0 on 2016/10/27
  */
 public class ExtendedPropertyPlaceholderConfigurer extends PropertyPlaceholderConfigurer {
     private Properties props;
@@ -40,6 +44,11 @@ public class ExtendedPropertyPlaceholderConfigurer extends PropertyPlaceholderCo
         return props;
     }
 
+    /**
+     * 获取系统属性配置文件中指定key的valueßß
+     * @param key
+     * @return
+     */
     public Object getProperty(String key) {
         return props.get(key);
     }

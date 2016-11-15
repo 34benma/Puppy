@@ -23,10 +23,35 @@ import java.lang.annotation.Target;
 
 /**
  * <pre>
- *  AfterBoostrap 表示 在程序启动时，在Spring整体BeanContext完全实例化完后，再来遍历调用一次
- * 而AfterConfig   表示 在程序启动时，以及在运行时动态改变配置时，调用
- * 也就是@AfterBoostrap  不会在动态改变配置时调用，而@AfterConfig调用情况更多点
+ *     在系统启动后自动调用的方法
+ *     使用场景：在Puppy启动后，需要自动调用Spring容器中某个类的某个方法，就可以使用该注解注解方法
+ *
+ *     使用示例：
+ *     {@code
+ *      @Service
+ *      public class A {
+ *          @code @AfterBootstrap
+ *          public void MethodA() {
+ *              //do methodA
+ *          }
+ *      }
+ *     }
+ *
+ *     这样，当puppy启动后，自动调用MethodA这个方法
+ *
+ * <strong>
+ *     注意：该方法必须是无参方法，可以有返回值
+ *     如果方法被{@code static}修饰，则该类必须为{@code final} 因为如果不是{@code final}类，则该类的子类的自然也继承了这个方法
+ *     Puppy初始化的时候回调用这个方法两次
+ * </strong>
  * </pre>
+ *
+ * Created By 迅雷 ZengDong
+ * 引用并doc by louiswang
+ *
+ * @author ZengDong
+ * @author louiswang
+ * @since V0.1.0 on 2016/10/28
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

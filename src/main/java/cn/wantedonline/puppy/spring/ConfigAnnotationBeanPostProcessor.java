@@ -16,8 +16,8 @@
 
 package cn.wantedonline.puppy.spring;
 
+import cn.wantedonline.puppy.exception.ServerConfigError;
 import cn.wantedonline.puppy.spring.annotation.AfterBootstrap;
-import cn.wantedonline.puppy.spring.annotation.AfterConfig;
 import cn.wantedonline.puppy.spring.annotation.Config;
 import cn.wantedonline.puppy.util.*;
 import org.springframework.beans.BeansException;
@@ -37,11 +37,17 @@ import java.lang.reflect.Type;
 import java.util.*;
 
 /**
- * Created by wangcheng on 2016/10/27.
- * Spring 启动后加载配置
+ * <pre>
+ *     spring启动后，初始化{@code @Config}和{@code @AfterBootstrap}配置的字段或方法
+ * </pre>
+ *
+ * @see org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessorAdapter
+ *
+ * @author wangcheng
+ * @since V0.1.0 on 2016/10/28
  */
 @Component
-public class ConfigAnnotationBeanPostProcessor extends InstantiationAwareBeanPostProcessorAdapter {
+public final class ConfigAnnotationBeanPostProcessor extends InstantiationAwareBeanPostProcessorAdapter {
 
     private class ConfigEntry {
         private Set<ConfigField> configFields = new LinkedHashSet<ConfigField>(2);
@@ -62,18 +68,36 @@ public class ConfigAnnotationBeanPostProcessor extends InstantiationAwareBeanPos
         private Object bean;
         private Config config;
 
+        /**
+         * 对于map，泛型长度为2，其他为1
+         */
         private Type[] collectionArgsType;
 
         private Method collectionInserter;
+        /**
+         * map,set(list),array三种类型
+         */
         private Class<?> collectionType;
         private Field field;
 
+        /**
+         * 默认是不可以重置的
+         */
         private boolean resetable;
+
         private Method setter;
 
+        /**
+         * 默认是英文状态下的逗号，在{@code @Config}中指定默认值，可以修改
+         */
         private String split;
+        /**
+         * 默认是英文状态下的冒号，在{@code @Config}中指定默认值，可以修改
+         */
         private String splitKeyValue;
-
+        /**
+         * 是否初始化的标志
+         */
         private boolean init;
 
         public ConfigField(Object bean, Field field, Config config) {
@@ -171,14 +195,14 @@ public class ConfigAnnotationBeanPostProcessor extends InstantiationAwareBeanPos
                                     Object elementValue = typeConverter.convertIfNecessary(pair.get(1), valueType);
                                     collectionInserter.invoke(realvalue, keyValue, elementValue);
                                 } else {
-                                    logger.error(
-                                            "set config:{}.{} MAP FAIL, element[{}] can't find keyvalue by split{}", new Object[]{
-                                                    bean.getClass().getSimpleName(),
-                                                    field.getName(),
-                                                    str,
-                                                    splitKeyValue
-                                            }
-                                    );
+//                                    logger.error(
+//                                            "set config:{}.{} MAP FAIL, element[{}] can't find keyvalue by split{}", new Object[]{
+//                                                    bean.getClass().getSimpleName(),
+//                                                    field.getName(),
+//                                                    str,
+//                                                    splitKeyValue
+//                                            }
+//                                    );
                                 }
                             }
                         } else {
@@ -222,7 +246,7 @@ public class ConfigAnnotationBeanPostProcessor extends InstantiationAwareBeanPos
                     }
 
                 } catch (Exception e) {
-                    logger.error("",e);
+//                    logger.error("",e);
                     if (null != info) {
                         info.append(e.getClass().getName()).append(":").append(e.getMessage()).append("\n");
                     }
@@ -298,7 +322,6 @@ public class ConfigAnnotationBeanPostProcessor extends InstantiationAwareBeanPos
 
     public static final String RESET_HISTORY_FMT = "%-20s %40s.%-40s %-20s %-20s\n";
     // 因为要处理 非单例的情况,所以要加上同步
-    private Map<Method, Object> afterConfigCache = Collections.synchronizedMap(new LinkedHashMap<Method, Object>());// 所有配置了@AfterConfig的Method-Bean映射
     private Map<String, ConfigEntry> configCache = Collections.synchronizedMap(new LinkedHashMap<String, ConfigEntry>());// 缓存所有配置了@Config的映射
     @Autowired
     private ExtendedPropertyPlaceholderConfigurer propertyConfigurer;// 自动注入 ExtendedPropertyPlaceholderConfigurer对象，用于获取配置资源
@@ -331,46 +354,12 @@ public class ConfigAnnotationBeanPostProcessor extends InstantiationAwareBeanPos
         List<Object> beans = new ArrayList<Object>(context.getBeanDefinitionCount());
         for (String name : context.getBeanDefinitionNames()) {
             Object bean = context.getBean(name);
-            postProcessAfterConfig(bean);
             beans.add(bean);
         }
         // 最后执行标注有@AfterBootstrap的方法
         for (Object bean : beans) {
             postProcessAfterBootstrap(bean);
         }
-    }
-
-    private boolean postProcessAfterConfig(final Object bean) throws BeansException {
-        // 赋值完成之后，需要执行标注有@AfterConfig的方法，方法要求必须无参数
-        ReflectionUtils.doWithMethods(bean.getClass(), new ReflectionUtils.MethodCallback() {
-
-            @Override
-            public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
-                AfterConfig cfg = method.getAnnotation(AfterConfig.class);
-                AfterBootstrap bst = method.getAnnotation(AfterBootstrap.class);
-                if (cfg != null && bst != null) { // 不允许同时标注
-                    throw new IllegalStateException("Both @" + AfterConfig.class.getSimpleName() + " and @" + AfterBootstrap.class.getSimpleName() + " is disallowed");
-                }
-                if (cfg != null) {
-                    if (Modifier.isStatic(method.getModifiers()) && !Modifier.isFinal(bean.getClass().getModifiers())) {
-                        throw new IllegalStateException("@" + AfterConfig.class.getSimpleName() + " annotation on static methods,it's class must be final");
-                    }
-                    if (method.getParameterTypes().length != 0) {
-                        throw new IllegalAccessError("can't invoke method:" + method.getName() + ",exception:paramters length should be 0");
-                    }
-                    ReflectionUtils.makeAccessible(method);
-                    ReflectionUtils.invokeMethod(method, bean);
-                    logger.debug("@{} {}.{}", new Object[] {
-                            AfterConfig.class.getSimpleName(),
-                            bean.getClass().getSimpleName(),
-                            method.getName()
-                    });
-                    // 缓存下来
-                    afterConfigCache.put(method, bean);
-                }
-            }
-        });
-        return true; // 通常情况下返回true即可
     }
 
     private boolean postProcessAfterBootstrap(final Object bean) throws BeansException {
@@ -382,14 +371,6 @@ public class ConfigAnnotationBeanPostProcessor extends InstantiationAwareBeanPos
                 AfterBootstrap bst = method.getAnnotation(AfterBootstrap.class);
                 if (bst != null) {
                     if (Modifier.isStatic(method.getModifiers()) && !Modifier.isFinal(bean.getClass().getModifiers())) {
-                        // 注意,这里一定要限制这么严格
-                        // public class AClass {
-                        // @AfterConfig
-                        // public static void init() {
-                        // //如果不限制Aclass是final类,那么当有BClass extend AClass,且也被Spring初始化时,这里会被调用两次,会造成不必要的麻烦
-                        // //因为ReflectionUtils.doWithMethods及ReflectionUtils.doWithFields时,会找其所有父类
-                        // }
-                        // }
                         throw new IllegalStateException("@" + AfterBootstrap.class.getSimpleName() + " annotation on static methods,it's class must be final");
                     }
                     if (method.getParameterTypes().length != 0) {
@@ -397,11 +378,11 @@ public class ConfigAnnotationBeanPostProcessor extends InstantiationAwareBeanPos
                     }
                     ReflectionUtils.makeAccessible(method);
                     ReflectionUtils.invokeMethod(method, bean);
-                    logger.debug("@{} {}.{}", new Object[] {
-                            AfterBootstrap.class.getSimpleName(),
-                            bean.getClass().getSimpleName(),
-                            method.getName()
-                    });
+//                    logger.debug("@{} {}.{}", new Object[] {
+//                            AfterBootstrap.class.getSimpleName(),
+//                            bean.getClass().getSimpleName(),
+//                            method.getName()
+//                    });
                 }
             }
         });
@@ -496,16 +477,8 @@ public class ConfigAnnotationBeanPostProcessor extends InstantiationAwareBeanPos
             if (info != null) {
                 info.append("\nINVOKE METHOD:\n");
             }
-            // 在有赋值的情况下,调用@AfterConfig对应方法进行重置
-            for (Map.Entry<Method, Object> e : afterConfigCache.entrySet()) {
-                ReflectionUtils.makeAccessible(e.getKey());
-                ReflectionUtils.invokeMethod(e.getKey(), e.getValue());
-                if (info != null) {
-                    info.append(e.getValue().getClass().getSimpleName()).append(".").append(e.getKey().getName()).append("()\n");
-                }
-            }
         } catch (IOException e1) {
-            logger.error("", e1);
+//            logger.error("", e1);
             if (info != null) {
                 info.append(e1.getClass().getName()).append(":").append(e1.getMessage()).append("\n");
             }

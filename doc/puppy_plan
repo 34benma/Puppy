@@ -1,3 +1,7 @@
-V0.01
-整合Spring 3.2.4
-整合Netty 4.0.33
+V0.1.0
+需要完善日志的类有：
+CloseableHelper
+ConfigAnnotationBeanPostProcessor
+DateStringUtil
+
+

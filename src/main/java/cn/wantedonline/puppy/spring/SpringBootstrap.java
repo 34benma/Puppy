@@ -20,8 +20,19 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
- * Created by wangcheng on 2016/10/27.
- * Spring 启动类，Puppy启动时调用load初始化Spring Context
+ * <pre>
+ *     Spring启动类
+ *     如果需要获取系统ApplicationContext则调用{@code SpringBootstrap.getContext()}
+ *     如果Spring还没有完成初始化，则ApplicationContext为null
+ *
+ * <strong>
+ *     注意：业务层不要调用load方法来加载Spring容器，Puppy启动的时候会调用load方法加载好
+ *     Spring容器，完成Spring容器的初始化工作
+ * </strong>
+ * </pre>
+ *
+ * @author louiswang
+ * @since V0.1.0 on 2016/10/28
  */
 public class SpringBootstrap {
     private static ApplicationContext CONTEXT;

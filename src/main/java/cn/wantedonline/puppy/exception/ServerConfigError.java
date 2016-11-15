@@ -14,16 +14,28 @@
  *  limitations under the License.
  */
 
-package cn.wantedonline.puppy;
-
-import org.springframework.stereotype.Component;
+package cn.wantedonline.puppy.exception;
 
 /**
- * Puppy启动类
+ * <pre>
+ *     {@code @Config}或{@code @AfterBootstrap}配置错误，抛出异常
+ * </pre>
  *
- * Created by wangcheng on 2016/10/27.
+ * 引用并doc 迅雷 hujiachao
+ *
+ * @author 迅雷 hujiachao
+ * @author wangcheng
+ * @since V0.1.0 on 2016/10/30
  */
-@Component
-public class Bootstrap {
+public class ServerConfigError extends Error {
 
+    private String errorMessage;
+
+    public ServerConfigError(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
 }
