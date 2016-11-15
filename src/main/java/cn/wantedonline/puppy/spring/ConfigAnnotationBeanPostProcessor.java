@@ -16,12 +16,10 @@
 
 package cn.wantedonline.puppy.spring;
 
-import cn.wantedonline.puppy.exception.ServerConfigError;
 import cn.wantedonline.puppy.spring.annotation.AfterBootstrap;
 import cn.wantedonline.puppy.spring.annotation.AfterConfig;
 import cn.wantedonline.puppy.spring.annotation.Config;
 import cn.wantedonline.puppy.util.*;
-import org.slf4j.Logger;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.SimpleTypeConverter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,11 +38,10 @@ import java.util.*;
 
 /**
  * Created by wangcheng on 2016/10/27.
+ * Spring 启动后加载配置
  */
 @Component
 public class ConfigAnnotationBeanPostProcessor extends InstantiationAwareBeanPostProcessorAdapter {
-
-    private static Logger logger = Log.getLogger();
 
     private class ConfigEntry {
         private Set<ConfigField> configFields = new LinkedHashSet<ConfigField>(2);

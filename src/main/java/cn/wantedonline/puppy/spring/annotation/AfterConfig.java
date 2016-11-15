@@ -23,10 +23,17 @@ import java.lang.annotation.Target;
 
 /**
  * <pre>
- *  AfterBoostrap 表示 在程序启动时，在Spring整体BeanContext完全实例化完后，再来遍历调用一次
- * 而AfterConfig   表示 在程序启动时，以及在运行时动态改变配置时，调用
- * 也就是@AfterBoostrap  不会在动态改变配置时调用，而@AfterConfig调用情况更多点
+ *      在某个配置生效后调用使用了{@code @AfterConfig}修饰的方法
+ *      使用场景：某个Spring容器中的Bean的某个字段使用了{@code @Config}修饰
+ *      如果需要在系统启动后自动调用某个方法来感知
+ * </pre>
  *
+ * Created By 迅雷 ZengDong
+ * 引用并doc By louiswang
+ *
+ * @author ZengDong
+ * @author louiswang
+ * @since V0.1.0 on 2016/10/28
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
