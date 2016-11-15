@@ -40,6 +40,7 @@ import java.util.*;
 
 /**
  * Created by wangcheng on 2016/10/27.
+ * Spring 启动后加载配置
  */
 @Component
 public class ConfigAnnotationBeanPostProcessor extends InstantiationAwareBeanPostProcessorAdapter {

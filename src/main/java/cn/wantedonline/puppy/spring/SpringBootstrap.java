@@ -21,6 +21,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * Created by wangcheng on 2016/10/27.
+ * Spring 启动类，Puppy启动时调用load初始化Spring Context
  */
 public class SpringBootstrap {
     private static ApplicationContext CONTEXT;

@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
  *  AfterBoostrap 表示 在程序启动时，在Spring整体BeanContext完全实例化完后，再来遍历调用一次
  * 而AfterConfig   表示 在程序启动时，以及在运行时动态改变配置时，调用
  * 也就是@AfterBoostrap  不会在动态改变配置时调用，而@AfterConfig调用情况更多点
- *
+ * </pre>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
