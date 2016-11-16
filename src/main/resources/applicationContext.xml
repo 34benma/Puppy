@@ -10,6 +10,7 @@
         <property name="locations">
             <list>
                 <value>/test.properties</value>
+                <value>/serverconfig.properties</value>
             </list>
         </property>
     </bean>

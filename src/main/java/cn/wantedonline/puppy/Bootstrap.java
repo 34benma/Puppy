@@ -16,6 +16,11 @@
 
 package cn.wantedonline.puppy;
 
+import cn.wantedonline.puppy.util.HttpServerConfig;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -25,5 +30,20 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class Bootstrap {
+    @Autowired
+    private HttpServerConfig httpServerConfig;
+
+    /**
+     * 初始化一个HttpServerBootstrap,还未绑定端口和启动
+     */
+    private ServerBootstrap initHttpServerBootstrap() {
+        EventLoopGroup bossGroup = httpServerConfig.getBossEventLoopGroup();
+        EventLoopGroup workerGroup = httpServerConfig.getWorkerEventLoopGroup();
+        ServerBootstrap serverBootstrap = new ServerBootstrap();
+        serverBootstrap.group(bossGroup,workerGroup)
+                       .channel(NioServerSocketChannel.class)
+                       .childHandler(httpServerConfig.getHttpServerHandler());
+        return serverBootstrap;
+    }
 
 }
