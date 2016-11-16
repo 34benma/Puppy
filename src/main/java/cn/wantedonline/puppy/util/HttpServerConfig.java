@@ -76,4 +76,9 @@ public final class HttpServerConfig {
               .addLast("http_response_encoder", new HttpResponseEncoder());
         }
     }
+
+    public void stopEventLoopGroup() {
+        workerEventLoopGroup.shutdownGracefully();
+        bossEventLoopGroup.shutdownGracefully();
+    }
 }
