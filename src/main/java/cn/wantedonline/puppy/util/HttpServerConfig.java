@@ -21,6 +21,8 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.http.HttpRequestDecoder;
+import io.netty.handler.codec.http.HttpResponseEncoder;
 import org.springframework.stereotype.Service;
 
 /**
@@ -39,6 +41,12 @@ public final class HttpServerConfig {
     private int listen_port = 8080;
     @Config
     private int work_thread_num = 0;
+    @Config
+    private int maxInitialLineLength = 4096;
+    @Config
+    private int maxHeaderSize = 8192;
+    @Config
+    private int maxChunkSize = 8192;
 
     private NioEventLoopGroup bossEventLoopGroup = new NioEventLoopGroup(1, new NamedThreadFactory("PuppyServer:NIO boss thread $", Thread.MAX_PRIORITY));
     private NioEventLoopGroup workerEventLoopGroup = new NioEventLoopGroup(work_thread_num <= 0 ? PROCESSOR_NUM*2 : work_thread_num, new NamedThreadFactory("PuppyServer:NIO worker thread $",Thread.NORM_PRIORITY+4));
@@ -64,6 +72,8 @@ public final class HttpServerConfig {
         @Override
         protected void initChannel(SocketChannel ch) throws Exception {
             ChannelPipeline cp = ch.pipeline();
+            cp.addLast("http_request_decoder",new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
+              .addLast("http_response_encoder", new HttpResponseEncoder());
         }
     }
 }

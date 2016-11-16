@@ -16,11 +16,13 @@
 
 package cn.wantedonline.puppy;
 
+import cn.wantedonline.puppy.spring.SpringBootstrap;
 import cn.wantedonline.puppy.util.HttpServerConfig;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 /**
@@ -30,6 +32,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class Bootstrap {
+    private static ApplicationContext context;
+
     @Autowired
     private HttpServerConfig httpServerConfig;
 
@@ -44,6 +48,12 @@ public class Bootstrap {
                        .channel(NioServerSocketChannel.class)
                        .childHandler(httpServerConfig.getHttpServerHandler());
         return serverBootstrap;
+    }
+
+    public static ApplicationContext main(String... springConfigLocations) {
+        context = SpringBootstrap.load(springConfigLocations);
+
+        return context;
     }
 
 }
