@@ -13,9 +13,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
 package cn.wantedonline.puppy;
 
+import cn.wantedonline.puppy.Bootstrap;
 import cn.wantedonline.puppy.spring.BeanUtil;
 import org.springframework.context.ApplicationContext;
 

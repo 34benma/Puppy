@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-package cn.wantedonline.puppy.httpserver.handler;
+package cn.wantedonline.puppy.httpserver.component;
 
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
