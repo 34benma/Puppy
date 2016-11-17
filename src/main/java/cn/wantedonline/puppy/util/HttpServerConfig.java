@@ -47,6 +47,11 @@ public final class HttpServerConfig {
     private int maxHeaderSize = 8192;
     @Config
     private int maxChunkSize = 8192;
+    @Config
+    private String cmdSuffix = "Cmd";
+    @Config
+    private String cmdDefaultMethod = "process";
+
 
     private NioEventLoopGroup bossEventLoopGroup = new NioEventLoopGroup(1, new NamedThreadFactory("PuppyServer:NIO boss thread $", Thread.MAX_PRIORITY));
     private NioEventLoopGroup workerEventLoopGroup = new NioEventLoopGroup(work_thread_num <= 0 ? PROCESSOR_NUM*2 : work_thread_num, new NamedThreadFactory("PuppyServer:NIO worker thread $",Thread.NORM_PRIORITY+4));
@@ -66,6 +71,14 @@ public final class HttpServerConfig {
 
     public ChannelInitializer getHttpServerHandler() {
         return httpServerHandler;
+    }
+
+    public String getCmdSuffix() {
+        return cmdSuffix;
+    }
+
+    public String getCmdDefaultMethod() {
+        return cmdDefaultMethod;
     }
 
     private class HttpServerHandler extends ChannelInitializer<SocketChannel> {
