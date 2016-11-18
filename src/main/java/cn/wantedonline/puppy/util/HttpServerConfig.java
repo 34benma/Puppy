@@ -16,6 +16,7 @@
 
 package cn.wantedonline.puppy.util;
 
+import cn.wantedonline.puppy.httpserver.component.AbstractPageDispatcher;
 import cn.wantedonline.puppy.spring.annotation.Config;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -23,6 +24,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -52,6 +54,8 @@ public final class HttpServerConfig {
     @Config
     private String cmdDefaultMethod = "process";
 
+    @Autowired
+    private AbstractPageDispatcher dispatcher;
 
     private NioEventLoopGroup bossEventLoopGroup = new NioEventLoopGroup(1, new NamedThreadFactory("PuppyServer:NIO boss thread $", Thread.MAX_PRIORITY));
     private NioEventLoopGroup workerEventLoopGroup = new NioEventLoopGroup(work_thread_num <= 0 ? PROCESSOR_NUM*2 : work_thread_num, new NamedThreadFactory("PuppyServer:NIO worker thread $",Thread.NORM_PRIORITY+4));
@@ -86,7 +90,8 @@ public final class HttpServerConfig {
         protected void initChannel(SocketChannel ch) throws Exception {
             ChannelPipeline cp = ch.pipeline();
             cp.addLast("http_request_decoder",new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
-              .addLast("http_response_encoder", new HttpResponseEncoder());
+              .addLast("http_response_encoder", new HttpResponseEncoder())
+              .addLast("pageDispatcher", dispatcher);
         }
     }
 

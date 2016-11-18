@@ -13,21 +13,25 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package cn.wantedonline.puppy;
 
-import cn.wantedonline.puppy.spring.BeanUtil;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
+package cn.wantedonline.puppy.httpserver.component;
+
+import cn.wantedonline.puppy.httpserver.common.CmdMappers;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
- * 测试puppy启动
- * @author wangcheng
- * @since V0.1.0 on 2016/11/16
+ * Created by wangcheng on 2016/11/18.
  */
-public class Launch {
-    public static void main(String[] args) throws InterruptedException, BeansException {
-        ApplicationContext context = Bootstrap.main(null, null, null,"classpath:applicationContext.xml");
-        Bootstrap bootstrap = BeanUtil.getTypedBean("bootstrap");
-        System.out.println(bootstrap.getServerStartTime());
+@Component
+public class CmdPageDispatcher extends BasePageDispatcher {
+    @Autowired
+    private CmdMappers cmdMappers;
+    @Override
+    public void init() {
+        cmdMappers.initAutoMap();
+        cmdMappers.initCmdMapperDefinedMap();
+        cmdMappers.initConfigMap();
+        cmdMappers.printFuzzyMap();
     }
 }

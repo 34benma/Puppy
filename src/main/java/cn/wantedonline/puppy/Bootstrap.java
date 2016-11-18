@@ -16,6 +16,7 @@
 
 package cn.wantedonline.puppy;
 
+import cn.wantedonline.puppy.httpserver.component.CmdPageDispatcher;
 import cn.wantedonline.puppy.spring.BeanUtil;
 import cn.wantedonline.puppy.spring.SpringBootstrap;
 import cn.wantedonline.puppy.util.AssertUtil;
@@ -43,6 +44,8 @@ public class Bootstrap {
 
     @Autowired
     private HttpServerConfig httpServerConfig;
+    @Autowired
+    private CmdPageDispatcher dispatcher;
 
     private Runnable shutdownRunnable;
 
@@ -67,6 +70,7 @@ public class Bootstrap {
 
     private void startHttpServer(Runnable initRunnable) {
         initEnv();
+        dispatcher.init();
         initOutter(initRunnable);
         start();
     }

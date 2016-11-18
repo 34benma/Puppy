@@ -16,7 +16,9 @@
 
 package cn.wantedonline.puppy.httpserver.component;
 
+import cn.wantedonline.puppy.util.AssertUtil;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.HttpRequest;
 
 /**
  * <pre>
@@ -35,5 +37,13 @@ public class BasePageDispatcher extends AbstractPageDispatcher {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
 
+    }
+
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+         if (AssertUtil.isNotNull(msg)) {
+             HttpRequest request = (HttpRequest) msg;
+             System.out.println(request.getUri());
+         }
     }
 }

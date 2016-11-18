@@ -30,6 +30,7 @@ import cn.wantedonline.puppy.util.StringTools;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -44,6 +45,7 @@ import java.util.*;
  * @author wangcheng
  * @since V0.1.0 on 16/11/17.
  */
+@Component
 public class CmdMappers {
     private Map<String, CmdMeta> annotation_cmd_map = Collections.emptyMap();
     private Map<String, CmdMeta> auto_cmd_map = Collections.emptyMap();
