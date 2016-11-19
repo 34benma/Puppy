@@ -14,35 +14,28 @@
  *  limitations under the License.
  */
 
-package cn.wantedonline.puppy.util;
+package cn.wantedonline.puppy.exception;
 
-import java.util.Collection;
-import java.util.List;
+import io.netty.handler.codec.http.HttpResponseStatus;
 
 /**
- * <pre>
- *      参数校验工具，校验null，empty等
- * </pre>
- *
  * @author wangcheng
- * @since V0.1.0 on 2016/11/26
+ * @since V0.1.0 on 2016/11/19.
  */
-public class AssertUtil {
-    private AssertUtil() {}
+public class AbstractHttpServerError extends Error {
+    protected HttpResponseStatus status;
 
-    public static boolean isNotNull(Object obj) {
-        return null != obj;
+    public HttpResponseStatus getStatus() {
+        return status;
     }
 
-    public static boolean isNull(Object obj) {
-        return null == obj;
+    @Override
+    public String getMessage() {
+        return this.getClass().getSimpleName();
     }
 
-    public static boolean isNotEmptyCollection(Collection<?> collec) {
-        return collec != null && collec.size() > 0;
-    }
-
-    public static boolean isEmptyCollection(Collection<?> collec) {
-        return null == collec || collec.size() == 0;
+    @Override
+    public String toString() {
+        return this.getMessage();
     }
 }

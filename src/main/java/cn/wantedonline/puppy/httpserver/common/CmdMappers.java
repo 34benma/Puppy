@@ -24,7 +24,6 @@ import cn.wantedonline.puppy.spring.BeanUtil;
 import cn.wantedonline.puppy.spring.SpringBootstrap;
 import cn.wantedonline.puppy.spring.annotation.Config;
 import cn.wantedonline.puppy.util.AssertUtil;
-import cn.wantedonline.puppy.util.HttpServerConfig;
 import cn.wantedonline.puppy.util.ResourceBundleUtil;
 import cn.wantedonline.puppy.util.StringTools;
 import io.netty.handler.codec.http.HttpRequest;

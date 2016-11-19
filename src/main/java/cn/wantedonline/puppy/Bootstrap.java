@@ -21,7 +21,7 @@ import cn.wantedonline.puppy.spring.BeanUtil;
 import cn.wantedonline.puppy.spring.SpringBootstrap;
 import cn.wantedonline.puppy.util.AssertUtil;
 import cn.wantedonline.puppy.util.DateStringUtil;
-import cn.wantedonline.puppy.util.HttpServerConfig;
+import cn.wantedonline.puppy.httpserver.common.HttpServerConfig;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;

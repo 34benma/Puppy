@@ -1,28 +1,29 @@
 /*
- *  Copyright [2016-2026] wangcheng(wantedonline@outlook.com)
+ * Copyright [2016-2026] wangcheng(wantedonline@outlook.com)
  *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
-package cn.wantedonline.puppy.util;
+package cn.wantedonline.puppy.httpserver.common;
 
 import cn.wantedonline.puppy.httpserver.component.AbstractPageDispatcher;
+import cn.wantedonline.puppy.httpserver.handler.HttpRequestDecoder;
 import cn.wantedonline.puppy.spring.annotation.Config;
+import cn.wantedonline.puppy.util.NamedThreadFactory;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -89,7 +90,7 @@ public final class HttpServerConfig {
         @Override
         protected void initChannel(SocketChannel ch) throws Exception {
             ChannelPipeline cp = ch.pipeline();
-            cp.addLast("http_request_decoder",new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
+            cp.addLast("puppy_http_request_decoder",new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
               .addLast("http_response_encoder", new HttpResponseEncoder())
               .addLast("pageDispatcher", dispatcher);
         }
