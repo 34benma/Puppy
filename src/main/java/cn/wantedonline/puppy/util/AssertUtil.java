@@ -17,7 +17,7 @@
 package cn.wantedonline.puppy.util;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Map;
 
 /**
  * <pre>
@@ -45,4 +45,13 @@ public class AssertUtil {
     public static boolean isEmptyCollection(Collection<?> collec) {
         return null == collec || collec.size() == 0;
     }
+
+    public static boolean isNotEmptyMap(Map<?, ?> map) {
+        return null != map || map.size() > 0;
+    }
+
+    public static boolean isEmptyMap(Map<?, ?> map) {
+        return null == map || map.size() == 0;
+    }
+
 }
