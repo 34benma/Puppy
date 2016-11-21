@@ -17,10 +17,7 @@
 package cn.wantedonline.puppy.httpserver.component;
 
 import cn.wantedonline.puppy.exception.IllegalParameterError;
-import cn.wantedonline.puppy.util.AssertUtil;
-import cn.wantedonline.puppy.util.CharsetTools;
-import cn.wantedonline.puppy.util.StringTools;
-import cn.wantedonline.puppy.util.ValueUtil;
+import cn.wantedonline.puppy.util.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
@@ -60,7 +57,7 @@ public class HttpRequest extends DefaultFullHttpRequest {
     private String remoteIp;
     private String primitiveRemoteIp;
 
-    private Map<String, List<String>> parameters;
+    private Map<String, List<String>> parametersByGet;
     private Map<String, List<String>> parametersByPost;
     private Map<String, Cookie> cookiesMap;
 
@@ -98,19 +95,45 @@ public class HttpRequest extends DefaultFullHttpRequest {
         return localAddress;
     }
 
+    public SocketAddress getRemoteAddress() {return remoteAddress; }
+
     public String getLocalIp() {
         if (StringTools.isEmpty(localIp)) {
             try {
-
+                localIp = InetAddressUtil.getIP((InetSocketAddress)localAddress);
             } catch (Exception e) {
-
+//                log.error("",e)
             }
         }
         return localIp;
     }
 
+    public String getRemoteHost() {
+        return ((InetSocketAddress)remoteAddress).getHostName();
+    }
+
+    public String getPrimitiveRemoteIp() {
+        if (StringTools.isEmpty(primitiveRemoteIp)) {
+            try {
+                primitiveRemoteIp = InetAddressUtil.getIP((InetSocketAddress)remoteAddress);
+            } catch (Exception e) {
+//                log.error("", e);
+                primitiveRemoteIp = "";
+            }
+        }
+        return primitiveRemoteIp;
+    }
+
     public int getLocalPort() {
         return ((InetSocketAddress)localAddress).getPort();
+    }
+
+    public int getRemotePort() {
+        return ((InetSocketAddress)remoteAddress).getPort();
+    }
+
+    public String getPath() {
+        return getQueryStringDecoder().path();
     }
 
     public QueryStringDecoder getQueryStringDecoder() {
@@ -224,18 +247,106 @@ public class HttpRequest extends DefaultFullHttpRequest {
         if (StringTools.isEmpty(key)) {
             throw new IllegalArgumentException("key is empty:[" + key + "]");
         }
-        List<String> v =
+        //先从get集合获取
+        List<String> v = getParametersByGet().get(key);
+        if (AssertUtil.isNotEmptyCollection(v)) {
+            return v.get(0);
+        }
+        return getParametersbyPost(key);
     }
 
-    public Map<String, List<String>> getParameters() {
-        if (AssertUtil.isNull(parameters)) {
-            try {
+    public String getParameter(String key, String defaultValue) {
+        String v = getParameter(key);
+        if (StringTools.isEmpty(v)) {
+            return defaultValue;
+        }
+        return v;
+    }
 
+    public boolean getParameterBoolean(String key) {
+        return getBoolean(key, getParameter(key), PARAMETER);
+    }
+
+    public boolean getParametrBoolean(String key, boolean defaultValue) {
+        return ValueUtil.getBoolean(getParameter(key), defaultValue);
+    }
+
+    public float getParameterFloat(String key) {
+        return getFloat(key, getParameter(key), PARAMETER);
+    }
+
+    public float getParameterFloat(String key, float defalutValue) {
+        return ValueUtil.getFloat(getParameter(key), defalutValue);
+    }
+
+    public double getParameterDouble(String key) {
+        return getDouble(key, getParameter(key), PARAMETER);
+    }
+
+    public double getParameterDouble(String key, double defaultValue) {
+        return ValueUtil.getDouble(getParameter(key), defaultValue);
+    }
+
+    public int getParameterInteger(String key) {
+        return getInteger(key, getParameter(key), PARAMETER);
+    }
+
+    public int getParameterInteger(String key, int defaultValue) {
+        return ValueUtil.getInteger(getParameter(key), defaultValue);
+    }
+
+    public long getParameterLong(String key) {
+        return getLong(key, getParameter(key), PARAMETER);
+    }
+
+    public long getParameterLong(String key, long defaultValue) {
+        return ValueUtil.getLong(getParameter(key), defaultValue);
+    }
+
+    /**
+     * 和{@link getParameter(String key)}的区别在于本方法返回的是一个数组
+     * @param key
+     * @return
+     */
+    public String[] getParameterValues(String key) {
+        List<String> result = getParametersByGet().get(key);
+        if (AssertUtil.isNotEmptyCollection(result)) {
+            return (String[])result.toArray();
+        }
+
+        result = getParametersbyPost().get(key);
+        if (AssertUtil.isNotEmptyCollection(result)) {
+            return (String[])result.toArray();
+        }
+        return null;
+    }
+
+    private String getParametersbyPost(String key) {
+        List<String> v = getParametersbyPost().get(key);
+        if (AssertUtil.isNotEmptyCollection(v)) {
+            return v.get(0);
+        }
+        return null;
+    }
+
+    private Map<String, List<String>> getParametersByGet() {
+        if (AssertUtil.isNull(parametersByGet)) {
+            try {
+                Map<String, List<String>> params = getQueryStringDecoder().parameters();
+                parametersByGet = params;
+            } catch (Exception e) {
+//                log.error("queryString decode fail,req:{},{}:{}", new Object[] {
+//                        this,
+//                        e.getClass(),
+//                        e.getMessage()
+//                });
+                parametersByGet = Collections.EMPTY_MAP;
             }
         }
+        return parametersByGet;
     }
 
-    public Map<String, Cookie> getCookies() {
+    private Map<String, Cookie> getCookies() {
         if (AssertUtil.isNull(cookiesMap)) {
             cookiesMap = new HashMap<>();
             //https://tools.ietf.org/html/rfc6265#section-5.4 Cookie Header只能有一个
