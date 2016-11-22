@@ -28,6 +28,5 @@ public class Launch {
     public static void main(String[] args) throws InterruptedException, BeansException {
         ApplicationContext context = Bootstrap.main(null, null, null,"classpath:applicationContext.xml");
         Bootstrap bootstrap = BeanUtil.getTypedBean("bootstrap");
-        System.out.println(bootstrap.getServerStartTime());
     }
 }

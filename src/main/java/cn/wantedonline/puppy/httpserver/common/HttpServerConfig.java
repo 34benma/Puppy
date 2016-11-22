@@ -24,6 +24,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,7 @@ import org.springframework.stereotype.Service;
 @Service
 public final class HttpServerConfig {
     public static final int PROCESSOR_NUM = Runtime.getRuntime().availableProcessors();
+    private static ContentType respInnerContentType = ContentType.json;
 
     @Config(resetable = true)
     private int listen_port = 8080;
@@ -51,6 +53,8 @@ public final class HttpServerConfig {
     @Config
     private int maxChunkSize = 8192;
     @Config
+    private int maxContentLength = 1024*1024;
+    @Config
     private String cmdSuffix = "Cmd";
     @Config
     private String cmdDefaultMethod = "process";
@@ -61,6 +65,10 @@ public final class HttpServerConfig {
     private NioEventLoopGroup bossEventLoopGroup = new NioEventLoopGroup(1, new NamedThreadFactory("PuppyServer:NIO boss thread $", Thread.MAX_PRIORITY));
     private NioEventLoopGroup workerEventLoopGroup = new NioEventLoopGroup(work_thread_num <= 0 ? PROCESSOR_NUM*2 : work_thread_num, new NamedThreadFactory("PuppyServer:NIO worker thread $",Thread.NORM_PRIORITY+4));
     private ChannelInitializer httpServerHandler = new HttpServerHandler();
+
+    public static ContentType getRespInnerContentType() {
+        return respInnerContentType;
+    }
 
     public NioEventLoopGroup getBossEventLoopGroup() {
         return bossEventLoopGroup;
@@ -92,6 +100,7 @@ public final class HttpServerConfig {
             ChannelPipeline cp = ch.pipeline();
             cp.addLast("puppy_http_request_decoder",new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
               .addLast("http_response_encoder", new HttpResponseEncoder())
+              .addLast("aggregator",new HttpObjectAggregator(maxContentLength))
               .addLast("pageDispatcher", dispatcher);
         }
     }

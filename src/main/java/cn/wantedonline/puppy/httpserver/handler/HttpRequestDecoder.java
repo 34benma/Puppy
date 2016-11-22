@@ -16,8 +16,11 @@
 
 package cn.wantedonline.puppy.httpserver.handler;
 
+import cn.wantedonline.puppy.httpserver.component.HttpRequest;
 import io.netty.handler.codec.http.HttpMessage;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpObjectDecoder;
+import io.netty.handler.codec.http.HttpVersion;
 
 /**
  * <pre>
@@ -40,7 +43,34 @@ public class HttpRequestDecoder extends HttpObjectDecoder {
 
     @Override
     protected HttpMessage createMessage(String[] initialLine) throws Exception {
-        return null;
+        HttpMethod method = HttpMethod.valueOf(initialLine[0]);
+        try {
+           return new HttpRequest(HttpVersion.valueOf(initialLine[2]), method, initialLine[1]);
+        } catch (Exception e) {
+            String fix = initialLine[1] + " " + initialLine[2];
+            int result = 0;
+            for (result = fix.length(); result > 0; --result) {
+                if (Character.isWhitespace(fix.charAt(result - 1))) {
+                    break;
+                }
+            }
+            String version = fix.substring(result);
+            for (; result > 0; --result) {
+                if (!Character.isWhitespace(fix.charAt(result - 1))) {
+                    break;
+                }
+            }
+            String uri = fix.substring(0, result);
+            // uri = uri.replaceAll("\t", "%09").replaceAll("\n", "%0D").replaceAll("\r", "%0A").replaceAll(" ", "+");
+//            log.error("parse httpRequest initialLine fail!\n\tori:{}\n\t      fix:{}\n\t      uri:{}\n\t  version:{}\n\t{}", new Object[] {
+//                    Arrays.toString(initialLine),
+//                    fix,
+//                    uri,
+//                    version,
+//                    e.getMessage()
+//            });
+            return new HttpRequest(HttpVersion.valueOf(version), method, uri);
+        }
     }
 
     @Override

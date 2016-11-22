@@ -17,9 +17,7 @@
 package cn.wantedonline.puppy.httpserver.component;
 
 import cn.wantedonline.puppy.httpserver.common.CmdMappers;
-import cn.wantedonline.puppy.util.AssertUtil;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.channel.ChannelHandler.Sharable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +28,7 @@ import org.springframework.stereotype.Component;
  * @author wangcheng
  * @since V0.1.0 on 2016/11/18.
  */
+@Sharable
 @Component
 public class CmdPageDispatcher extends BasePageDispatcher {
     @Autowired
@@ -42,32 +41,5 @@ public class CmdPageDispatcher extends BasePageDispatcher {
         cmdMappers.printFuzzyMap();
     }
 
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        super.channelActive(ctx);
 
-    }
-
-    @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        super.channelReadComplete(ctx);
-    }
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        super.exceptionCaught(ctx, cause);
-    }
-
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (AssertUtil.isNotNull(msg)) {
-            DefaultHttpRequest request = (DefaultHttpRequest) msg;
-            System.out.println(request.getUri());
-        }
-    }
 }

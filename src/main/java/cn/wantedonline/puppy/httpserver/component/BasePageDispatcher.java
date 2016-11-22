@@ -16,6 +16,9 @@
 
 package cn.wantedonline.puppy.httpserver.component;
 
+import cn.wantedonline.puppy.util.AssertUtil;
+import io.netty.channel.ChannelHandlerContext;
+
 /**
  * <pre>
  *  上层业务请求分发器，不同的业务可以继承该类实现特殊的需求
@@ -28,6 +31,37 @@ public class BasePageDispatcher extends AbstractPageDispatcher {
     @Override
     public void init() {
 
+    }
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        super.channelActive(ctx);
+
+    }
+
+    @Override
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+        super.channelReadComplete(ctx);
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        super.exceptionCaught(ctx, cause);
+    }
+
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        if (AssertUtil.isNotNull(msg)) {
+            HttpRequest request = (HttpRequest) msg;
+            String param = request.getParameter("hello");
+            System.out.println(param);
+            System.out.println(request.getUri());
+        }
     }
 
 
