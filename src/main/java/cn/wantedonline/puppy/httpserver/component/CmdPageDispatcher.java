@@ -16,8 +16,11 @@
 
 package cn.wantedonline.puppy.httpserver.component;
 
+import cn.wantedonline.puppy.httpserver.common.BaseCmd;
 import cn.wantedonline.puppy.httpserver.common.CmdMappers;
+import cn.wantedonline.puppy.util.AssertUtil;
 import io.netty.channel.ChannelHandler.Sharable;
+import io.netty.channel.ChannelHandlerContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,5 +44,28 @@ public class CmdPageDispatcher extends BasePageDispatcher {
         cmdMappers.printFuzzyMap();
     }
 
+    @Override
+    public void dispatch(ContextAttachment attachment) {
+        Object cmdReturnObj = null;
+        try {
+            cmdReturnObj = _dispatch(attachment);
+        } catch (Throwable ex) {
+            //交给异常处理器处理
 
+        } finally {
+
+        }
+    }
+
+    private Object _dispatch(ContextAttachment attachment) {
+        HttpRequest request = attachment.getRequest();
+        HttpResponse response = attachment.getResponse();
+        String path = request.getPath();
+        CmdMappers.CmdMeta meta = cmdMappers.getCmdMeta(path);
+        if (AssertUtil.isNull(meta)) {
+            //处理找不到meta的情况
+        }
+        attachment.setCmdMeta(meta);
+        BaseCmd meta.getCmd();
+    }
 }

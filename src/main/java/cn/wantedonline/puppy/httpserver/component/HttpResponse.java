@@ -23,8 +23,10 @@ import cn.wantedonline.puppy.util.CharsetTools;
 import cn.wantedonline.puppy.util.StringTools;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.CookieEncoder;
 
@@ -94,6 +96,13 @@ public class HttpResponse extends DefaultFullHttpResponse {
     @Override
     public HttpResponseStatus getStatus() {
         return super.getStatus();
+    }
+
+    public void packagingCookies() {
+        List<Cookie> cookies = getCookies();
+        if (AssertUtil.isNotEmptyCollection(cookies)) {
+            headers().add(HttpHeaders.Names.SET_COOKIE, ClientCookieEncoder.STRICT.encode(cookies));
+        }
     }
 
 }

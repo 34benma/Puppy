@@ -18,6 +18,7 @@ package cn.wantedonline.puppy.httpserver.component;
 
 import cn.wantedonline.puppy.util.AssertUtil;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.util.AttributeKey;
 
 /**
  * <pre>
@@ -27,11 +28,16 @@ import io.netty.channel.ChannelHandlerContext;
  * @author wangcheng
  * @since V0.1.0 on 2016/11/18
  */
-public class BasePageDispatcher extends AbstractPageDispatcher {
+public abstract class BasePageDispatcher extends AbstractPageDispatcher {
+
+    private static final AttributeKey<ContextAttachment> HTTP_ATTACH_KEY = AttributeKey.newInstance("HTTP_ATTACHMENT");
+
     @Override
     public void init() {
 
     }
+
+    public abstract void dispatch(ContextAttachment attachment);
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -41,6 +47,7 @@ public class BasePageDispatcher extends AbstractPageDispatcher {
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+
         super.channelReadComplete(ctx);
     }
 
@@ -57,11 +64,31 @@ public class BasePageDispatcher extends AbstractPageDispatcher {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (AssertUtil.isNotNull(msg)) {
-            HttpRequest request = (HttpRequest) msg;
-            String param = request.getParameter("hello");
-            System.out.println(param);
-            System.out.println(request.getUri());
+            ContextAttachment attach = getAttach(ctx);
+            try {
+                if (msg instanceof HttpRequest) {
+                    HttpRequest request = (HttpRequest) msg;
+                    request.setRemoteAddress(ctx.channel().remoteAddress());
+                    request.setLocalAddress(ctx.channel().localAddress());
+                    requestReceived(ctx, attach);
+                } else {
+                    throw new RuntimeException("can't reslove message: " + msg);
+                }
+            } finally {
+                ctx.writeAndFlush(msg);
+            }
         }
+    }
+
+    private void requestReceived(ChannelHandlerContext ctx, ContextAttachment attachment) {
+        HttpResponse response = new HttpResponse(attachment);
+        attachment.registerNewMessage(response);
+        dispatch(attachment);
+    }
+
+    public ContextAttachment getAttach(ChannelHandlerContext ctx) {
+        ContextAttachment attach = (ContextAttachment)ctx.attr(HTTP_ATTACH_KEY).setIfAbsent(new ContextAttachment(ctx));
+        return attach;
     }
 
 

@@ -100,7 +100,7 @@ public final class HttpServerConfig {
             ChannelPipeline cp = ch.pipeline();
             cp.addLast("puppy_http_request_decoder",new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
               .addLast("http_response_encoder", new HttpResponseEncoder())
-              .addLast("aggregator",new HttpObjectAggregator(maxContentLength))
+//              .addLast("aggregator",new HttpObjectAggregator(maxContentLength))
               .addLast("pageDispatcher", dispatcher);
         }
     }

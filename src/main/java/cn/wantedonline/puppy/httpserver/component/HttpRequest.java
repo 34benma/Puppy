@@ -95,6 +95,14 @@ public class HttpRequest extends DefaultFullHttpRequest {
         return localAddress;
     }
 
+    public void setLocalAddress(SocketAddress localAddress) {
+        this.localAddress = localAddress;
+    }
+
+    public void setRemoteAddress(SocketAddress remoteAddress) {
+        this.remoteAddress = remoteAddress;
+    }
+
     public SocketAddress getRemoteAddress() {return remoteAddress; }
 
     public String getLocalIp() {
