@@ -17,9 +17,15 @@
 package cn.wantedonline.puppy.httpserver.component;
 
 import cn.wantedonline.puppy.httpserver.common.CmdMappers;
+import cn.wantedonline.puppy.util.AssertUtil;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -41,9 +47,75 @@ public class ContextAttachment implements ChannelFutureListener, Comparable<Cont
     private long encode;
     private long complete;
 
+    private volatile Thread processThread;
+
+    private Set<Object> closeable;
+
+    private List<Throwable> throwables;
+
+    private volatile boolean running;
+
+    public void registerThrowable(Throwable ex) {
+        if (AssertUtil.isNotEmptyCollection(throwables)) {
+            throwables = new ArrayList<>(1);
+        }
+        throwables.add(ex);
+    }
+
+    public boolean isProcessing() {
+        return running;
+    }
+
+    public boolean isNotProcessing() {
+        return !running;
+    }
+
     public long markLastReadTime() {
         lastReadTime = System.currentTimeMillis();
         return lastReadTime;
+    }
+
+    public void markWriteBegin() {
+        this.encode = this.lastWriteTime = System.currentTimeMillis();
+    }
+
+    private synchronized void _registerCloseable(Object obj) {
+        if (AssertUtil.isEmptyCollection(closeable)) {
+            closeable = new HashSet<>(1);
+        }
+        closeable.add(obj);
+    }
+
+    public void registerCloseable(Object obj) {
+        _registerCloseable(obj);
+    }
+
+    public void registerCloseable(Thread t) {
+        Thread.interrupted();
+        _registerCloseable(t);
+    }
+
+    public synchronized void unRegisterCloseable(Object obj) {
+        if (AssertUtil.isNotEmptyCollection(closeable)) {
+            closeable.remove(obj);
+        }
+    }
+
+    public synchronized void registerProcessThread() {
+        Thread.interrupted();
+        this.processThread = Thread.currentThread();
+    }
+
+    public synchronized void unRegisterProcessThread() {
+        this.processThread = null;
+    }
+
+    public long getLastReadTime() {
+        return lastReadTime;
+    }
+
+    public long getLastWriteTime() {
+        return lastWriteTime;
     }
 
     public HttpRequest getRequest() {
@@ -60,6 +132,10 @@ public class ContextAttachment implements ChannelFutureListener, Comparable<Cont
 
     public void setCmdMeta(CmdMappers.CmdMeta cmdMeta) {
         this.cmdMeta = cmdMeta;
+    }
+
+    public CmdMappers.CmdMeta getCmdMeta() {
+        return cmdMeta;
     }
 
     public ContextAttachment(ChannelHandlerContext ctx) {

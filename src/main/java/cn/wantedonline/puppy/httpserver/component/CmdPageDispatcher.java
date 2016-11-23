@@ -24,6 +24,8 @@ import io.netty.channel.ChannelHandlerContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Method;
+
 /**
  * <pre>
  *     Cmd命令分发器
@@ -57,7 +59,7 @@ public class CmdPageDispatcher extends BasePageDispatcher {
         }
     }
 
-    private Object _dispatch(ContextAttachment attachment) {
+    private Object _dispatch(ContextAttachment attachment) throws Exception {
         HttpRequest request = attachment.getRequest();
         HttpResponse response = attachment.getResponse();
         String path = request.getPath();
@@ -66,6 +68,13 @@ public class CmdPageDispatcher extends BasePageDispatcher {
             //处理找不到meta的情况
         }
         attachment.setCmdMeta(meta);
-        BaseCmd meta.getCmd();
+        BaseCmd cmd = meta.getCmd();
+        Method method = meta.getMethod();
+        try {
+            attachment.registerProcessThread();
+            return method.invoke(cmd, request, response);
+        } finally {
+
+        }
     }
 }
