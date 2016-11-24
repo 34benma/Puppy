@@ -18,6 +18,8 @@ package cn.wantedonline.puppy.httpserver.component;
 
 import cn.wantedonline.puppy.util.AssertUtil;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpUtil;
 import io.netty.util.AttributeKey;
 
 /**
@@ -68,6 +70,11 @@ public abstract class BasePageDispatcher extends AbstractPageDispatcher {
             try {
                 if (msg instanceof HttpRequest) {
                     HttpRequest request = (HttpRequest) msg;
+                    if (HttpHeaders.is100ContinueExpected(request)) {
+                        //处理100 Continue http://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.2.3
+                        //参考Tomcat的处理
+//                        ctx.writeAndFlush();
+                    }
                     request.setRemoteAddress(ctx.channel().remoteAddress());
                     request.setLocalAddress(ctx.channel().localAddress());
                     requestReceived(ctx, attach);
@@ -87,8 +94,8 @@ public abstract class BasePageDispatcher extends AbstractPageDispatcher {
     }
 
     public ContextAttachment getAttach(ChannelHandlerContext ctx) {
-        ContextAttachment attach = (ContextAttachment)ctx.attr(HTTP_ATTACH_KEY).setIfAbsent(new ContextAttachment(ctx));
-        return attach;
+        ctx.attr(HTTP_ATTACH_KEY).setIfAbsent(new ContextAttachment(ctx));
+        return (ContextAttachment)ctx.attr(HTTP_ATTACH_KEY);
     }
 
 

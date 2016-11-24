@@ -18,6 +18,7 @@ package cn.wantedonline.puppy.httpserver.component;
 
 import cn.wantedonline.puppy.exception.IllegalParameterError;
 import cn.wantedonline.puppy.util.*;
+import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
@@ -66,6 +67,10 @@ public class HttpRequest extends DefaultFullHttpRequest {
 
     public HttpRequest(HttpVersion httpVersion, HttpMethod method, String uri) {
         super(httpVersion, method, uri);
+    }
+
+    public HttpRequest(HttpVersion httpVersion, HttpMethod method, String uri, boolean validateHeaders) {
+        super(httpVersion, method, uri, Unpooled.EMPTY_BUFFER,validateHeaders);
     }
 
     public long getCreateTime() {

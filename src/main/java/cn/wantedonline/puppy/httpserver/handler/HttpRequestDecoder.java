@@ -38,7 +38,7 @@ public class HttpRequestDecoder extends HttpObjectDecoder {
 
     @Override
     protected boolean isDecodingRequest() {
-        return false;
+        return true;
     }
 
     @Override
@@ -75,6 +75,6 @@ public class HttpRequestDecoder extends HttpObjectDecoder {
 
     @Override
     protected HttpMessage createInvalidMessage() {
-        return null;
+        return new HttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/bad-request", true);
     }
 }
