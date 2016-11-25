@@ -17,8 +17,8 @@
 package cn.wantedonline.puppy.httpserver.common;
 
 import cn.wantedonline.puppy.httpserver.component.AbstractPageDispatcher;
-import cn.wantedonline.puppy.httpserver.handler.HttpRequestDecoder;
-import cn.wantedonline.puppy.httpserver.handler.HttpResponseEncoder;
+import cn.wantedonline.puppy.httpserver.component.HttpRequestDecoder;
+import cn.wantedonline.puppy.httpserver.component.HttpResponseEncoder;
 import cn.wantedonline.puppy.spring.annotation.Config;
 import cn.wantedonline.puppy.util.NamedThreadFactory;
 import io.netty.channel.ChannelInitializer;

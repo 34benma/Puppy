@@ -18,6 +18,7 @@ package cn.wantedonline.puppy.httpserver.component;
 
 import cn.wantedonline.puppy.httpserver.common.BaseCmd;
 import cn.wantedonline.puppy.httpserver.common.CmdMappers;
+import cn.wantedonline.puppy.httpserver.handler.TextResponseHandlerManager;
 import cn.wantedonline.puppy.util.AssertUtil;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
@@ -38,6 +39,9 @@ import java.lang.reflect.Method;
 public class CmdPageDispatcher extends BasePageDispatcher {
     @Autowired
     private CmdMappers cmdMappers;
+    @Autowired
+    private TextResponseHandlerManager handlerManager;
+
     @Override
     public void init() {
         cmdMappers.initAutoMap();
@@ -55,7 +59,7 @@ public class CmdPageDispatcher extends BasePageDispatcher {
             //交给异常处理器处理
 
         } finally {
-
+            handlerManager.writeResponse(attachment, cmdReturnObj);
         }
     }
 

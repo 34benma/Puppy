@@ -157,4 +157,10 @@ public class ContextAttachment implements ChannelFutureListener, Comparable<Cont
         this.response = response;
         this.process = response.getCreateTime();
     }
+
+    public void registerNewMessage(HttpRequest request) {
+        this.request = request;
+        this.decode = request.getCreateTime();
+        this.lastReadTime = this.decode;
+    }
 }

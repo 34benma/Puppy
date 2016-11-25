@@ -42,13 +42,14 @@ import java.util.List;
  */
 public class HttpResponse extends DefaultFullHttpResponse {
 
-    private Charset contentCharset = CharsetTools.UTF_8;
-    private int contentLength = -1;
     private List<Cookie> cookies = new ArrayList<Cookie>(1);
     private long createTime = System.currentTimeMillis();
     private ContentType innerContentType = HttpServerConfig.getRespInnerContentType();
     private ContextAttachment attach;
+    private int contentLength = -1;
+    private Charset contentCharset = CharsetTools.UTF_8;
     private String contentString;
+    private boolean contentSetted = false;
 
     public HttpResponse() {
         super(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
@@ -60,7 +61,6 @@ public class HttpResponse extends DefaultFullHttpResponse {
 
     public HttpResponse(ContextAttachment attach) {
         super(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-        this.content().writeByte(11111);
         this.attach = attach;
     }
 
@@ -70,6 +70,10 @@ public class HttpResponse extends DefaultFullHttpResponse {
 
     public Charset getContentCharset() {
         return contentCharset;
+    }
+
+    public void setContentCharset(Charset contentCharset) {
+        this.contentCharset = contentCharset;
     }
 
     public String getContentString() {
@@ -83,8 +87,53 @@ public class HttpResponse extends DefaultFullHttpResponse {
         return contentString;
     }
 
+    public void setContent(ByteBuf contentBuf) {
+        content().writeBytes(contentBuf);
+        if (AssertUtil.isNotNull(contentBuf)) {
+            contentLength = content().readableBytes();
+        }
+        contentSetted = true;
+    }
+
+    public void setContentString(String contentStr) {
+        this.contentString = contentStr;
+        content().writeBytes(contentStr.getBytes(contentCharset));
+        contentLength = content().readableBytes();
+        contentSetted = true;
+    }
+
     public int getContentLength() {
         return contentLength;
+    }
+
+    public boolean isContentSetted() {
+        return contentSetted;
+    }
+
+    /**
+     * 重定向
+     * @param locationUrl
+     */
+    public void redirect(String locationUrl) {
+        redirect(locationUrl, HttpResponseStatus.FOUND);
+    }
+
+    /**
+     * 自定义返回码的重定向
+     * @param locationUrl
+     * @param status
+     */
+    public void redirect(String locationUrl, HttpResponseStatus status) {
+        setStatus(status);
+        setHeaderIfEmpty(HttpHeaders.Names.LOCATION, locationUrl);
+    }
+
+    public boolean setHeaderIfEmpty(String name, String value) {
+        if (AssertUtil.isNull(headers().get(name))) {
+            headers().set(name, value);
+            return true;
+        }
+        return false;
     }
 
     public List<Cookie> getCookies() {

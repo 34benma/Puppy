@@ -76,7 +76,7 @@ public abstract class BasePageDispatcher extends AbstractPageDispatcher {
                     }
                     request.setRemoteAddress(ctx.channel().remoteAddress());
                     request.setLocalAddress(ctx.channel().localAddress());
-
+                    attach.registerNewMessage(request);
                     requestReceived(ctx, attach);
                 }
 

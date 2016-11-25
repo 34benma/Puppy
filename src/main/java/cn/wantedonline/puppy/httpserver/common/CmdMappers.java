@@ -20,14 +20,14 @@ import cn.wantedonline.puppy.httpserver.annotation.CmdDescr;
 import cn.wantedonline.puppy.httpserver.annotation.CmdMapper;
 import cn.wantedonline.puppy.httpserver.annotation.CmdOverride;
 import cn.wantedonline.puppy.httpserver.annotation.CmdPath;
+import cn.wantedonline.puppy.httpserver.component.HttpRequest;
+import cn.wantedonline.puppy.httpserver.component.HttpResponse;
 import cn.wantedonline.puppy.spring.BeanUtil;
 import cn.wantedonline.puppy.spring.SpringBootstrap;
 import cn.wantedonline.puppy.spring.annotation.Config;
 import cn.wantedonline.puppy.util.AssertUtil;
 import cn.wantedonline.puppy.util.ResourceBundleUtil;
 import cn.wantedonline.puppy.util.StringTools;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

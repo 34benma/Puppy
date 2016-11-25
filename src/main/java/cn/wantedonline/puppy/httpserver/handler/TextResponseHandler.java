@@ -16,16 +16,22 @@
 
 package cn.wantedonline.puppy.httpserver.handler;
 
+import cn.wantedonline.puppy.httpserver.component.ContextAttachment;
+import cn.wantedonline.puppy.spring.annotation.Config;
 
 /**
- * <pre>
- *     包装的响应解码器
- *     完成功能：
- * </pre>
  *
  * @author wangcheng
  * @since V0.1.0 on 16/11/25.
  */
-public class HttpResponseEncoder extends io.netty.handler.codec.http.HttpResponseEncoder {
+public abstract class TextResponseHandler implements Handler {
+
+    @Config
+    protected String responseReturnNull = "Response is null";
+
+    public abstract String buildContentString(ContextAttachment attach, Object cmdReturnObj);
+
+    public abstract Object handleThrowable(ContextAttachment attach, Throwable ex) throws Exception;
+
 
 }

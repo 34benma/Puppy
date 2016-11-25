@@ -121,6 +121,18 @@ public class HttpRequest extends DefaultFullHttpRequest {
         return localIp;
     }
 
+    public String getHeader(String headName) {
+        return headers().get(headName);
+    }
+
+    public Map<String, List<String>> getHeaders() {
+        Map<String, List<String>> headers = new HashMap<>(headers().names().size());
+        for (String headerName : headers().names()) {
+            headers.put(headerName, headers().getAll(headerName));
+        }
+        return headers;
+    }
+
     public String getRemoteHost() {
         return ((InetSocketAddress)remoteAddress).getHostName();
     }
