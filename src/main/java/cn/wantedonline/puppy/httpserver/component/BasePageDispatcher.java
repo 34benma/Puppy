@@ -17,9 +17,10 @@
 package cn.wantedonline.puppy.httpserver.component;
 
 import cn.wantedonline.puppy.util.AssertUtil;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpUtil;
+import io.netty.handler.codec.http.*;
 import io.netty.util.AttributeKey;
 
 /**
@@ -50,12 +51,11 @@ public abstract class BasePageDispatcher extends AbstractPageDispatcher {
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
 
-        super.channelReadComplete(ctx);
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-
+        ctx.close();
     }
 
     @Override
@@ -72,17 +72,20 @@ public abstract class BasePageDispatcher extends AbstractPageDispatcher {
                     HttpRequest request = (HttpRequest) msg;
                     if (HttpHeaders.is100ContinueExpected(request)) {
                         //处理100 Continue http://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.2.3
-                        //参考Tomcat的处理
-//                        ctx.writeAndFlush();
+                        ctx.writeAndFlush(new HttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE));
                     }
                     request.setRemoteAddress(ctx.channel().remoteAddress());
                     request.setLocalAddress(ctx.channel().localAddress());
+
                     requestReceived(ctx, attach);
-                } else {
-                    throw new RuntimeException("can't reslove message: " + msg);
+                }
+
+                if (msg instanceof HttpContent) {
+
                 }
             } finally {
-                ctx.writeAndFlush(msg);
+                ChannelFuture future = ctx.writeAndFlush(attach.getResponse().copy());
+                future.addListener(ChannelFutureListener.CLOSE);
             }
         }
     }
@@ -95,7 +98,7 @@ public abstract class BasePageDispatcher extends AbstractPageDispatcher {
 
     public ContextAttachment getAttach(ChannelHandlerContext ctx) {
         ctx.attr(HTTP_ATTACH_KEY).setIfAbsent(new ContextAttachment(ctx));
-        return (ContextAttachment)ctx.attr(HTTP_ATTACH_KEY);
+        return ctx.attr(HTTP_ATTACH_KEY).get();
     }
 
 

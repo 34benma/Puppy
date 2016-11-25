@@ -18,14 +18,13 @@ package cn.wantedonline.puppy.httpserver.common;
 
 import cn.wantedonline.puppy.httpserver.component.AbstractPageDispatcher;
 import cn.wantedonline.puppy.httpserver.handler.HttpRequestDecoder;
+import cn.wantedonline.puppy.httpserver.handler.HttpResponseEncoder;
 import cn.wantedonline.puppy.spring.annotation.Config;
 import cn.wantedonline.puppy.util.NamedThreadFactory;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.HttpResponseEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -99,7 +98,7 @@ public final class HttpServerConfig {
         protected void initChannel(SocketChannel ch) throws Exception {
             ChannelPipeline cp = ch.pipeline();
             cp.addLast("puppy_http_request_decoder",new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
-              .addLast("http_response_encoder", new HttpResponseEncoder())
+              .addLast("puppy_http_response_encoder", new HttpResponseEncoder())
 //              .addLast("aggregator",new HttpObjectAggregator(maxContentLength))
               .addLast("pageDispatcher", dispatcher);
         }

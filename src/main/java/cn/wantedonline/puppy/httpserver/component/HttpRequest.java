@@ -66,7 +66,7 @@ public class HttpRequest extends DefaultFullHttpRequest {
     private Charset charset4QueryStringDecoder = CharsetTools.UTF_8;
 
     public HttpRequest(HttpVersion httpVersion, HttpMethod method, String uri) {
-        super(httpVersion, method, uri);
+        super(httpVersion, method, uri, Unpooled.EMPTY_BUFFER);
     }
 
     public HttpRequest(HttpVersion httpVersion, HttpMethod method, String uri, boolean validateHeaders) {

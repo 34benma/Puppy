@@ -22,6 +22,7 @@ import cn.wantedonline.puppy.util.AssertUtil;
 import cn.wantedonline.puppy.util.CharsetTools;
 import cn.wantedonline.puppy.util.StringTools;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -53,8 +54,13 @@ public class HttpResponse extends DefaultFullHttpResponse {
         super(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
     }
 
+    public HttpResponse(HttpVersion version, HttpResponseStatus status) {
+        super(version, status);
+    }
+
     public HttpResponse(ContextAttachment attach) {
         super(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+        this.content().writeByte(11111);
         this.attach = attach;
     }
 
