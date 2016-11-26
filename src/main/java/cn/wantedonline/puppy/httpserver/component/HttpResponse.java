@@ -49,6 +49,7 @@ public class HttpResponse extends DefaultFullHttpResponse {
     private int contentLength = -1;
     private Charset contentCharset = CharsetTools.UTF_8;
     private String contentString;
+    private boolean binaryContent; //是否为二进制内容
     private boolean contentSetted = false;
 
     public HttpResponse() {
@@ -66,6 +67,10 @@ public class HttpResponse extends DefaultFullHttpResponse {
 
     public void addCookie(Cookie cookie) {
         this.cookies.add(cookie);
+    }
+
+    public boolean isBinaryContent() {
+        return binaryContent;
     }
 
     public Charset getContentCharset() {
@@ -93,9 +98,15 @@ public class HttpResponse extends DefaultFullHttpResponse {
             contentLength = content().readableBytes();
         }
         contentSetted = true;
+        if (StringTools.isEmpty(contentString)) {
+            binaryContent = true;
+        }
     }
 
     public void setContentString(String contentStr) {
+        if (StringTools.isEmpty(contentStr)) {
+            return;
+        }
         this.contentString = contentStr;
         content().writeBytes(contentStr.getBytes(contentCharset));
         contentLength = content().readableBytes();

@@ -25,4 +25,5 @@ package cn.wantedonline.puppy.httpserver.common;
  * @since V0.1.0 on 2016/11/17
  */
 public interface BaseCmd {
+
 }

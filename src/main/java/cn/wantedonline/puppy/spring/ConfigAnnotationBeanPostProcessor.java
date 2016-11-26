@@ -18,6 +18,7 @@ package cn.wantedonline.puppy.spring;
 
 import cn.wantedonline.puppy.exception.ServerConfigError;
 import cn.wantedonline.puppy.spring.annotation.AfterBootstrap;
+import cn.wantedonline.puppy.spring.annotation.AfterConfig;
 import cn.wantedonline.puppy.spring.annotation.Config;
 import cn.wantedonline.puppy.util.*;
 import org.springframework.beans.BeansException;
@@ -35,6 +36,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * <pre>
@@ -322,7 +324,8 @@ public final class ConfigAnnotationBeanPostProcessor extends InstantiationAwareB
 
     public static final String RESET_HISTORY_FMT = "%-20s %40s.%-40s %-20s %-20s\n";
     // 因为要处理 非单例的情况,所以要加上同步
-    private Map<String, ConfigEntry> configCache = Collections.synchronizedMap(new LinkedHashMap<String, ConfigEntry>());// 缓存所有配置了@Config的映射
+    private Map<String, ConfigEntry> configCache = new ConcurrentHashMap<String, ConfigEntry>();
+    private Map<Method, Object> afterConfigCache = new ConcurrentHashMap<Method, Object>();
     @Autowired
     private ExtendedPropertyPlaceholderConfigurer propertyConfigurer;// 自动注入 ExtendedPropertyPlaceholderConfigurer对象，用于获取配置资源
     private StringBuilder resetHistory = new StringBuilder(String.format(RESET_HISTORY_FMT, "TIME", "CLASS", "FIELD", "ORIVALUE", "NEWVALUE")); // 设置config的历史记录
@@ -354,12 +357,45 @@ public final class ConfigAnnotationBeanPostProcessor extends InstantiationAwareB
         List<Object> beans = new ArrayList<Object>(context.getBeanDefinitionCount());
         for (String name : context.getBeanDefinitionNames()) {
             Object bean = context.getBean(name);
+            //处理AfterConfig
+            postProcessAfterConfig(bean);
             beans.add(bean);
         }
         // 最后执行标注有@AfterBootstrap的方法
         for (Object bean : beans) {
             postProcessAfterBootstrap(bean);
         }
+    }
+
+    private boolean postProcessAfterConfig(final Object bean) throws BeansException {
+        ReflectionUtils.doWithMethods(bean.getClass(), new ReflectionUtils.MethodCallback() {
+            @Override
+            public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
+                AfterConfig cfg = method.getAnnotation(AfterConfig.class);
+                AfterBootstrap bst = method.getAnnotation(AfterBootstrap.class);
+                if (AssertUtil.isNotNull(cfg) && AssertUtil.isNotNull(bst)) {
+                    throw new IllegalStateException("Both @" + AfterConfig.class.getSimpleName() + " and @" + AfterBootstrap.class.getSimpleName() + " is disallowed");
+                }
+                if (AssertUtil.isNotNull(cfg)) {
+                    if (Modifier.isStatic(method.getModifiers()) && !Modifier.isFinal(method.getModifiers())) {
+                        throw new IllegalStateException("@" + AfterConfig.class.getSimpleName() + " annotation on static methods,it's class must be final");
+                    }
+                    if (method.getParameterTypes().length != 0) {
+                        throw new IllegalAccessError("can't invoke method:" + method.getName() + ",exception:paramters length should be 0");
+                    }
+                    ReflectionUtils.makeAccessible(method);
+                    ReflectionUtils.invokeMethod(method, bean);
+//                log.debug("@{} {}.{}", new Object[] {
+//                        AfterConfig.class.getSimpleName(),
+//                        bean.getClass().getSimpleName(),
+//                        method.getName()
+//                });
+                    // 缓存下来
+                    afterConfigCache.put(method, bean);
+                }
+            }
+        });
+        return true;
     }
 
     private boolean postProcessAfterBootstrap(final Object bean) throws BeansException {
@@ -369,7 +405,7 @@ public final class ConfigAnnotationBeanPostProcessor extends InstantiationAwareB
             @Override
             public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
                 AfterBootstrap bst = method.getAnnotation(AfterBootstrap.class);
-                if (bst != null) {
+                if (AssertUtil.isNotNull(bst)) {
                     if (Modifier.isStatic(method.getModifiers()) && !Modifier.isFinal(bean.getClass().getModifiers())) {
                         throw new IllegalStateException("@" + AfterBootstrap.class.getSimpleName() + " annotation on static methods,it's class must be final");
                     }
@@ -450,41 +486,6 @@ public final class ConfigAnnotationBeanPostProcessor extends InstantiationAwareB
         reloadConfig(null);
     }
 
-    /**
-     * 重新加载配置文件,并赋值重置
-     */
-    public void reloadConfig(StringBuilder info) {
-        try {
-            // 加载配置文件
-            Properties props = propertyConfigurer.reload();
-            boolean settted = false; // 赋值
-            for (ConfigEntry ce : configCache.values()) {
-                if (!ce.guarded) {
-                    Object value = props.getProperty(ce.key);
-                    if (value == null) {
-                        continue;
-                    }
-                    for (ConfigField configField : ce.configFields) {
-                        if (configField.setValue(value, false, false, info)) {
-                            settted = true;
-                        }
-                    }
-                }
-            }
-            if (!settted) {
-                return;
-            }
-            if (info != null) {
-                info.append("\nINVOKE METHOD:\n");
-            }
-        } catch (IOException e1) {
-//            logger.error("", e1);
-            if (info != null) {
-                info.append(e1.getClass().getName()).append(":").append(e1.getMessage()).append("\n");
-            }
-        }
-    }
-
     public void resetGuradedConfig() {
         resetGuradedConfig(null);
     }
@@ -534,4 +535,45 @@ public final class ConfigAnnotationBeanPostProcessor extends InstantiationAwareB
         }
     }
 
+    /**
+     * 重新加载配置文件并且返回刷新后的新值
+     * @return
+     */
+    public void reloadConfig(StringBuilder info) {
+        try {
+            Properties props = propertyConfigurer.reload();
+            boolean setted = false;
+            for (ConfigEntry ce : configCache.values()) {
+                if (!ce.guarded) {
+                    Object value = props.getProperty(ce.key);
+                    if (AssertUtil.isNull(value)) {
+                        continue;
+                    }
+                    for (ConfigField configField : ce.configFields) {
+                        if (configField.setValue(value, false, false, info)) {
+                            setted = true;
+                        }
+                    }
+                }
+            }
+            if (!setted) {
+                return;
+            }
+            if (AssertUtil.isNotNull(info)) {
+                info.append("\nINVOKE METHOD:\n");
+            }
+            for (Map.Entry<Method, Object> e : afterConfigCache.entrySet()) {
+                ReflectionUtils.makeAccessible(e.getKey());
+                ReflectionUtils.invokeMethod(e.getKey(), e.getValue());
+                if (AssertUtil.isNotNull(info)) {
+                    info.append(e.getValue().getClass().getSimpleName()).append(".").append(e.getKey().getName()).append("()\n");
+                }
+            }
+        } catch (IOException e) {
+//            log.error("", e);
+            if (AssertUtil.isNotNull(info)) {
+                info.append(e.getClass().getName()).append(":").append(e.getMessage()).append("\n");
+            }
+        }
+    }
 }

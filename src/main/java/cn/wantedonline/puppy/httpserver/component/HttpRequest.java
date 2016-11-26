@@ -256,7 +256,7 @@ public class HttpRequest extends DefaultFullHttpRequest {
         return params;
     }
 
-    public Map<String, List<String>> getParametersbyPost() {
+    private Map<String, List<String>> getParametersbyPost() {
         if (AssertUtil.isEmptyMap(parametersByPost)) {
             HttpPostRequestDecoder httpPostRequestDecoder = getHttpPostRequestDecoder();
             if (AssertUtil.isNotNull(httpPostRequestDecoder)) {

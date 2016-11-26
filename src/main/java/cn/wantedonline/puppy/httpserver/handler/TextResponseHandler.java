@@ -17,21 +17,41 @@
 package cn.wantedonline.puppy.httpserver.handler;
 
 import cn.wantedonline.puppy.httpserver.component.ContextAttachment;
+import cn.wantedonline.puppy.httpserver.component.HttpResponse;
 import cn.wantedonline.puppy.spring.annotation.Config;
+import cn.wantedonline.puppy.util.AssertUtil;
+import io.netty.handler.codec.http.HttpHeaders;
+import org.springframework.stereotype.Service;
 
 /**
- *
+ * <pre>
+ *     普通文本返回值处理器
+ * </pre>
  * @author wangcheng
  * @since V0.1.0 on 16/11/25.
  */
-public abstract class TextResponseHandler implements Handler {
+@Service
+public class TextResponseHandler implements Handler {
 
     @Config
-    protected String responseReturnNull = "Response is null";
+    private String responseReturnNull = "Response is null";
 
-    public abstract String buildContentString(ContextAttachment attach, Object cmdReturnObj);
+    public String buildContentString(ContextAttachment attach, Object cmdReturnObj) {
+        HttpResponse response = attach.getResponse();
+        response.setHeaderIfEmpty(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=" + response.getContentCharset());
+        StringBuilder content = _buildContentString(attach, cmdReturnObj);
+        return content.toString();
+    }
 
-    public abstract Object handleThrowable(ContextAttachment attach, Throwable ex) throws Exception;
+    public Object handleThrowable(ContextAttachment attach, Throwable ex) throws Exception {
+        return null;
+    }
+
+    private StringBuilder _buildContentString(ContextAttachment attach, Object cmdReturnObj) {
+        StringBuilder content = new StringBuilder();
+        content.append(AssertUtil.isNull(cmdReturnObj) ? responseReturnNull : cmdReturnObj);
+        return content;
+    }
 
 
 }

@@ -32,7 +32,7 @@ public class TextResponseHandlerManager extends HandlerManager<TextResponseHandl
     private static TextResponseHandlerManager INSTANCE;
 
     @Autowired
-    private PlainHandler plainHandler;
+    private TextResponseHandler textResponseHandler;
 
     /**
      * 因为放入了Spring中，所以必须有一个公有构造函数
@@ -47,7 +47,7 @@ public class TextResponseHandlerManager extends HandlerManager<TextResponseHandl
 
     @AfterBootstrap
     public void initHandlerChain() {
-        addFirst(plainHandler);
+        addFirst(textResponseHandler);
     }
 
     private void setContent(ContextAttachment attach, Object cmdReturnObj) {
@@ -66,7 +66,6 @@ public class TextResponseHandlerManager extends HandlerManager<TextResponseHandl
         HttpResponse response = attach.getResponse();
         setContent(attach, cmdReturnObj);
         response.packagingCookies();
-//        attach.getChannelHandlerContext().channel().write(response);
     }
 
 

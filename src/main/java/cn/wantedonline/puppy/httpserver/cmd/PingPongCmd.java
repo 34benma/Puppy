@@ -23,6 +23,8 @@ import cn.wantedonline.puppy.httpserver.annotation.CmdReturn;
 import cn.wantedonline.puppy.httpserver.common.BaseCmd;
 import cn.wantedonline.puppy.httpserver.component.HttpRequest;
 import cn.wantedonline.puppy.httpserver.component.HttpResponse;
+import cn.wantedonline.puppy.spring.ConfigAnnotationBeanPostProcessor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -39,6 +41,8 @@ import java.util.Map;
 @CmdDescr("Ping-PongCmd,打印Http请求头信息")
 @Service
 public class PingPongCmd implements BaseCmd {
+    @Autowired
+    private ConfigAnnotationBeanPostProcessor processor;
     @Cmd("打印Http请求信息")
     @CmdReturn({
             ""
@@ -46,6 +50,8 @@ public class PingPongCmd implements BaseCmd {
     @CmdAuthor("wangcheng")
     public Object pingMyRequest(HttpRequest request, HttpResponse response) {
         Map<String, List<String>> headersMap = request.getHeaders();
-        return headersMap.toString();
+        StringBuilder info = new StringBuilder();
+        processor.reloadConfig(info);
+        return info;
     }
 }

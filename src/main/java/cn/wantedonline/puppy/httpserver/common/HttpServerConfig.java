@@ -19,6 +19,7 @@ package cn.wantedonline.puppy.httpserver.common;
 import cn.wantedonline.puppy.httpserver.component.AbstractPageDispatcher;
 import cn.wantedonline.puppy.httpserver.component.HttpRequestDecoder;
 import cn.wantedonline.puppy.httpserver.component.HttpResponseEncoder;
+import cn.wantedonline.puppy.spring.annotation.AfterConfig;
 import cn.wantedonline.puppy.spring.annotation.Config;
 import cn.wantedonline.puppy.util.NamedThreadFactory;
 import io.netty.channel.ChannelInitializer;
@@ -43,20 +44,24 @@ public final class HttpServerConfig {
 
     @Config(resetable = true)
     private int listen_port = 8080;
-    @Config
+    @Config(resetable = true)
     private int work_thread_num = 0;
-    @Config
+    @Config(resetable = true)
     private int maxInitialLineLength = 4096;
-    @Config
+    @Config(resetable = true)
     private int maxHeaderSize = 8192;
-    @Config
+    @Config(resetable = true)
     private int maxChunkSize = 8192;
-    @Config
+    @Config(resetable = true)
     private int maxContentLength = 1024*1024;
-    @Config
+    @Config(resetable = true)
+    private int keepAliveTimeout = 2;
+    @Config(resetable = true)
     private String cmdSuffix = "Cmd";
-    @Config
+    @Config(resetable = true)
     private String cmdDefaultMethod = "process";
+    @Config(resetable = true)
+    private String respDefaultContentType = "json";
 
     @Autowired
     private AbstractPageDispatcher dispatcher;
@@ -107,5 +112,18 @@ public final class HttpServerConfig {
     public void stopEventLoopGroup() {
         workerEventLoopGroup.shutdownGracefully();
         bossEventLoopGroup.shutdownGracefully();
+    }
+
+    @AfterConfig
+    public void initRespInnerContentType() {
+        if ("xml".equalsIgnoreCase(respDefaultContentType)) {
+            respInnerContentType = ContentType.xml;
+        } else if ("html".equalsIgnoreCase(respDefaultContentType)) {
+            respInnerContentType = ContentType.html;
+        } else if ("plain".equalsIgnoreCase(respDefaultContentType)) {
+            respInnerContentType = ContentType.plain;
+        } else {
+            respInnerContentType = ContentType.json;
+        }
     }
 }

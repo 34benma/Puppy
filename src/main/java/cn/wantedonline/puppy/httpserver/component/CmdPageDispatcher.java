@@ -21,7 +21,6 @@ import cn.wantedonline.puppy.httpserver.common.CmdMappers;
 import cn.wantedonline.puppy.httpserver.handler.TextResponseHandlerManager;
 import cn.wantedonline.puppy.util.AssertUtil;
 import io.netty.channel.ChannelHandler.Sharable;
-import io.netty.channel.ChannelHandlerContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -69,7 +68,7 @@ public class CmdPageDispatcher extends BasePageDispatcher {
         String path = request.getPath();
         CmdMappers.CmdMeta meta = cmdMappers.getCmdMeta(path);
         if (AssertUtil.isNull(meta)) {
-            //处理找不到meta的情况
+            //处理找不到meta的情况, 1 path是 / 则显示首页，2 path是doc，则显示文档页，3 path是不存在的页，显示404
         }
         attachment.setCmdMeta(meta);
         BaseCmd cmd = meta.getCmd();
