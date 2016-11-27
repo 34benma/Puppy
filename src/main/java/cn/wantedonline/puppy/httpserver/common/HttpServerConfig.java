@@ -21,11 +21,15 @@ import cn.wantedonline.puppy.httpserver.component.HttpRequestDecoder;
 import cn.wantedonline.puppy.httpserver.component.HttpResponseEncoder;
 import cn.wantedonline.puppy.spring.annotation.AfterConfig;
 import cn.wantedonline.puppy.spring.annotation.Config;
+import cn.wantedonline.puppy.util.Log;
 import cn.wantedonline.puppy.util.NamedThreadFactory;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,13 +43,15 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public final class HttpServerConfig {
+    private Logger log = Log.getLogger(HttpServerConfig.class);
+
     public static final int PROCESSOR_NUM = Runtime.getRuntime().availableProcessors();
     private static ContentType respInnerContentType = ContentType.json;
 
     @Config(resetable = true)
     private int listen_port = 8080;
     @Config(resetable = true)
-    private int work_thread_num = 0;
+    private int work_thread_num = 20;
     @Config(resetable = true)
     private int maxInitialLineLength = 4096;
     @Config(resetable = true)
@@ -62,12 +68,14 @@ public final class HttpServerConfig {
     private String cmdDefaultMethod = "process";
     @Config(resetable = true)
     private String respDefaultContentType = "json";
+    @Config(resetable = true)
+    private boolean openLogHandler;
 
     @Autowired
     private AbstractPageDispatcher dispatcher;
 
-    private NioEventLoopGroup bossEventLoopGroup = new NioEventLoopGroup(1, new NamedThreadFactory("PuppyServer:NIO boss thread $", Thread.MAX_PRIORITY));
-    private NioEventLoopGroup workerEventLoopGroup = new NioEventLoopGroup(work_thread_num <= 0 ? PROCESSOR_NUM*2 : work_thread_num, new NamedThreadFactory("PuppyServer:NIO worker thread $",Thread.NORM_PRIORITY+4));
+    private NioEventLoopGroup bossEventLoopGroup = new NioEventLoopGroup(1, new NamedThreadFactory("Boss thread $", Thread.MAX_PRIORITY));
+    private NioEventLoopGroup workerEventLoopGroup = new NioEventLoopGroup(work_thread_num > 0 ? work_thread_num : PROCESSOR_NUM*2, new NamedThreadFactory("Worker thread $",Thread.NORM_PRIORITY+4));
     private ChannelInitializer httpServerHandler = new HttpServerHandler();
 
     public static ContentType getRespInnerContentType() {
@@ -102,6 +110,9 @@ public final class HttpServerConfig {
         @Override
         protected void initChannel(SocketChannel ch) throws Exception {
             ChannelPipeline cp = ch.pipeline();
+            if (openLogHandler) {
+                cp.addLast("inner_logger_handler",new LoggingHandler(LogLevel.DEBUG));
+            }
             cp.addLast("puppy_http_request_decoder",new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
               .addLast("puppy_http_response_encoder", new HttpResponseEncoder())
 //              .addLast("aggregator",new HttpObjectAggregator(maxContentLength))
@@ -112,6 +123,10 @@ public final class HttpServerConfig {
     public void stopEventLoopGroup() {
         workerEventLoopGroup.shutdownGracefully();
         bossEventLoopGroup.shutdownGracefully();
+    }
+
+    public int getWorkerCount() {
+        return workerEventLoopGroup.executorCount();
     }
 
     @AfterConfig
@@ -125,5 +140,6 @@ public final class HttpServerConfig {
         } else {
             respInnerContentType = ContentType.json;
         }
+        log.info("set response inner contentType is: {}", respInnerContentType);
     }
 }

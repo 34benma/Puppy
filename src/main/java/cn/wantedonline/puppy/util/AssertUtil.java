@@ -54,4 +54,8 @@ public class AssertUtil {
         return null == map || map.size() == 0;
     }
 
+    public static boolean isEmptyArray(Object[] objects) {return null == objects || objects.length == 0;}
+
+    public static boolean isNotEmptyArray(Object[] objects) {return !isEmptyArray(objects);}
+
 }

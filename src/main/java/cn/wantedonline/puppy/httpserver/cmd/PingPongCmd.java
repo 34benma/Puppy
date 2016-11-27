@@ -23,6 +23,7 @@ import cn.wantedonline.puppy.httpserver.annotation.CmdReturn;
 import cn.wantedonline.puppy.httpserver.common.BaseCmd;
 import cn.wantedonline.puppy.httpserver.component.HttpRequest;
 import cn.wantedonline.puppy.httpserver.component.HttpResponse;
+import cn.wantedonline.puppy.httpserver.component.NioWorkerStat;
 import cn.wantedonline.puppy.spring.ConfigAnnotationBeanPostProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -52,6 +53,6 @@ public class PingPongCmd implements BaseCmd {
         Map<String, List<String>> headersMap = request.getHeaders();
         StringBuilder info = new StringBuilder();
         processor.reloadConfig(info);
-        return info;
+        return NioWorkerStat.statNioWorkers();
     }
 }

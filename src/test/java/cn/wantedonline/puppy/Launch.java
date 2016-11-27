@@ -15,7 +15,6 @@
  */
 package cn.wantedonline.puppy;
 
-import cn.wantedonline.puppy.spring.BeanUtil;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 
@@ -26,7 +25,6 @@ import org.springframework.context.ApplicationContext;
  */
 public class Launch {
     public static void main(String[] args) throws InterruptedException, BeansException {
-        ApplicationContext context = Bootstrap.main(null, null, null,"classpath:applicationContext.xml");
-        Bootstrap bootstrap = BeanUtil.getTypedBean("bootstrap");
+        ApplicationContext context = Bootstrap.main(args ,"classpath:applicationContext.xml");
     }
 }

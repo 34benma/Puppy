@@ -21,6 +21,7 @@ import cn.wantedonline.puppy.spring.annotation.AfterBootstrap;
 import cn.wantedonline.puppy.spring.annotation.AfterConfig;
 import cn.wantedonline.puppy.spring.annotation.Config;
 import cn.wantedonline.puppy.util.*;
+import org.slf4j.Logger;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.SimpleTypeConverter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +51,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Component
 public final class ConfigAnnotationBeanPostProcessor extends InstantiationAwareBeanPostProcessorAdapter {
+
+    private Logger log = Log.getLogger(ConfigAnnotationBeanPostProcessor.class);
 
     private class ConfigEntry {
         private Set<ConfigField> configFields = new LinkedHashSet<ConfigField>(2);
@@ -197,14 +200,14 @@ public final class ConfigAnnotationBeanPostProcessor extends InstantiationAwareB
                                     Object elementValue = typeConverter.convertIfNecessary(pair.get(1), valueType);
                                     collectionInserter.invoke(realvalue, keyValue, elementValue);
                                 } else {
-//                                    logger.error(
-//                                            "set config:{}.{} MAP FAIL, element[{}] can't find keyvalue by split{}", new Object[]{
-//                                                    bean.getClass().getSimpleName(),
-//                                                    field.getName(),
-//                                                    str,
-//                                                    splitKeyValue
-//                                            }
-//                                    );
+                                    log.error(
+                                            "set config:{}.{} MAP FAIL, element[{}] can't find keyvalue by split{}", new Object[]{
+                                                    bean.getClass().getSimpleName(),
+                                                    field.getName(),
+                                                    str,
+                                                    splitKeyValue
+                                            }
+                                    );
                                 }
                             }
                         } else {
@@ -248,7 +251,7 @@ public final class ConfigAnnotationBeanPostProcessor extends InstantiationAwareB
                     }
 
                 } catch (Exception e) {
-//                    logger.error("",e);
+                    log.error("",e);
                     if (null != info) {
                         info.append(e.getClass().getName()).append(":").append(e.getMessage()).append("\n");
                     }
@@ -385,11 +388,11 @@ public final class ConfigAnnotationBeanPostProcessor extends InstantiationAwareB
                     }
                     ReflectionUtils.makeAccessible(method);
                     ReflectionUtils.invokeMethod(method, bean);
-//                log.debug("@{} {}.{}", new Object[] {
-//                        AfterConfig.class.getSimpleName(),
-//                        bean.getClass().getSimpleName(),
-//                        method.getName()
-//                });
+                    log.debug("@{} {}.{}", new Object[] {
+                        AfterConfig.class.getSimpleName(),
+                        bean.getClass().getSimpleName(),
+                        method.getName()
+                    });
                     // 缓存下来
                     afterConfigCache.put(method, bean);
                 }
@@ -414,11 +417,11 @@ public final class ConfigAnnotationBeanPostProcessor extends InstantiationAwareB
                     }
                     ReflectionUtils.makeAccessible(method);
                     ReflectionUtils.invokeMethod(method, bean);
-//                    logger.debug("@{} {}.{}", new Object[] {
-//                            AfterBootstrap.class.getSimpleName(),
-//                            bean.getClass().getSimpleName(),
-//                            method.getName()
-//                    });
+                    log.debug("@{} {}.{}", new Object[] {
+                            AfterBootstrap.class.getSimpleName(),
+                            bean.getClass().getSimpleName(),
+                            method.getName()
+                    });
                 }
             }
         });
@@ -570,7 +573,7 @@ public final class ConfigAnnotationBeanPostProcessor extends InstantiationAwareB
                 }
             }
         } catch (IOException e) {
-//            log.error("", e);
+            log.error("", e);
             if (AssertUtil.isNotNull(info)) {
                 info.append(e.getClass().getName()).append(":").append(e.getMessage()).append("\n");
             }
