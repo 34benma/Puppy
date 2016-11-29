@@ -23,6 +23,7 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import io.netty.handler.codec.http.multipart.*;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -39,6 +40,8 @@ import java.util.*;
  * @since V0.1.0 on 2016/11/19.
  */
 public class HttpRequest extends DefaultFullHttpRequest {
+    private Logger log = Log.getLogger(HttpRequest.class);
+
     private static final String COOKIE = HttpHeaders.Names.COOKIE;
     private static final String PARAMETER = "Parameter";
 
@@ -88,7 +91,7 @@ public class HttpRequest extends DefaultFullHttpRequest {
                 try {
                     httpPostRequestDecoder = new HttpPostRequestDecoder(factory, this, charset4ContentDecoder);
                 } catch (HttpPostRequestDecoder.ErrorDataDecoderException e) {
-//                    log.error("request postDataDecode error:{}", this, e);
+                    log.error("request postDataDecode error:{}", this, e);
                 } catch (HttpPostRequestDecoder.IncompatibleDataDecoderException e) {}
             }
             httpPostRequestDecoderInit = true;
@@ -115,7 +118,7 @@ public class HttpRequest extends DefaultFullHttpRequest {
             try {
                 localIp = InetAddressUtil.getIP((InetSocketAddress)localAddress);
             } catch (Exception e) {
-//                log.error("",e)
+                log.error("",e);
             }
         }
         return localIp;
@@ -142,7 +145,7 @@ public class HttpRequest extends DefaultFullHttpRequest {
             try {
                 primitiveRemoteIp = InetAddressUtil.getIP((InetSocketAddress)remoteAddress);
             } catch (Exception e) {
-//                log.error("", e);
+                log.error("", e);
                 primitiveRemoteIp = "";
             }
         }
@@ -241,17 +244,17 @@ public class HttpRequest extends DefaultFullHttpRequest {
                             }
                             ori.add(value);
                         } catch (IOException e) {
-//                            log.error("cant init attribute,req:{},attribute:{}", new Object[] {
-//                                    this,
-//                                    attribute,
-//                                    e
-//                            });
+                            log.error("cant init attribute,req:{},attribute:{}", new Object[] {
+                                    this,
+                                    attribute,
+                                    e
+                            });
                         }
                     }
                 }
             }
         } catch (HttpPostRequestDecoder.NotEnoughDataDecoderException e) {
-//            log.error("req:{}", this, e);
+            log.error("req:{}", this, e);
         }
         return params;
     }
@@ -292,7 +295,7 @@ public class HttpRequest extends DefaultFullHttpRequest {
         return getBoolean(key, getParameter(key), PARAMETER);
     }
 
-    public boolean getParametrBoolean(String key, boolean defaultValue) {
+    public boolean getParameterBoolean(String key, boolean defaultValue) {
         return ValueUtil.getBoolean(getParameter(key), defaultValue);
     }
 
@@ -360,11 +363,11 @@ public class HttpRequest extends DefaultFullHttpRequest {
                 Map<String, List<String>> params = getQueryStringDecoder().parameters();
                 parametersByGet = params;
             } catch (Exception e) {
-//                log.error("queryString decode fail,req:{},{}:{}", new Object[] {
-//                        this,
-//                        e.getClass(),
-//                        e.getMessage()
-//                });
+                log.error("queryString decode fail,req:{},{}:{}", new Object[] {
+                        this,
+                        e.getClass(),
+                        e.getMessage()
+                });
                 parametersByGet = Collections.EMPTY_MAP;
             }
         }

@@ -17,10 +17,14 @@
 package cn.wantedonline.puppy.httpserver.component;
 
 import cn.wantedonline.puppy.httpserver.component.HttpRequest;
+import cn.wantedonline.puppy.util.Log;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpObjectDecoder;
 import io.netty.handler.codec.http.HttpVersion;
+import org.slf4j.Logger;
+
+import java.util.Arrays;
 
 /**
  * <pre>
@@ -31,6 +35,7 @@ import io.netty.handler.codec.http.HttpVersion;
  * @since V0.1.0 on 2016/11/19.
  */
 public class HttpRequestDecoder extends HttpObjectDecoder {
+    private Logger log = Log.getLogger(HttpRequestDecoder.class);
 
     public HttpRequestDecoder(int maxInitialLineLength, int maxHeaderSize, int maxChunkSize) {
         super(maxInitialLineLength, maxHeaderSize, maxChunkSize, true);
@@ -61,14 +66,14 @@ public class HttpRequestDecoder extends HttpObjectDecoder {
                 }
             }
             String uri = fix.substring(0, result);
-            // uri = uri.replaceAll("\t", "%09").replaceAll("\n", "%0D").replaceAll("\r", "%0A").replaceAll(" ", "+");
-//            log.error("parse httpRequest initialLine fail!\n\tori:{}\n\t      fix:{}\n\t      uri:{}\n\t  version:{}\n\t{}", new Object[] {
-//                    Arrays.toString(initialLine),
-//                    fix,
-//                    uri,
-//                    version,
-//                    e.getMessage()
-//            });
+             uri = uri.replaceAll("\t", "%09").replaceAll("\n", "%0D").replaceAll("\r", "%0A").replaceAll(" ", "+");
+            log.error("parse httpRequest initialLine fail!\n\tori:{}\n\t      fix:{}\n\t      uri:{}\n\t  version:{}\n\t{}", new Object[] {
+                    Arrays.toString(initialLine),
+                    fix,
+                    uri,
+                    version,
+                    e.getMessage()
+            });
             return new HttpRequest(HttpVersion.valueOf(version), method, uri);
         }
     }

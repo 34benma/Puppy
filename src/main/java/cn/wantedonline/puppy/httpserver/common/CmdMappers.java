@@ -26,8 +26,10 @@ import cn.wantedonline.puppy.spring.BeanUtil;
 import cn.wantedonline.puppy.spring.SpringBootstrap;
 import cn.wantedonline.puppy.spring.annotation.Config;
 import cn.wantedonline.puppy.util.AssertUtil;
+import cn.wantedonline.puppy.util.Log;
 import cn.wantedonline.puppy.util.ResourceBundleUtil;
 import cn.wantedonline.puppy.util.StringTools;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -46,6 +48,8 @@ import java.util.*;
  */
 @Component
 public class CmdMappers {
+    private Logger log = Log.getLogger(CmdMappers.class);
+
     private Map<String, CmdMeta> annotation_cmd_map = Collections.emptyMap();
     private Map<String, CmdMeta> auto_cmd_map = Collections.emptyMap();
     private Map<String, CmdMeta> config_cmd_map = Collections.emptyMap();
@@ -211,7 +215,7 @@ public class CmdMappers {
             }
         }
         annotation_cmd_map = tmp;
-//        log.error("ANNOTATION_MAP:\t\t{}", annotation_cmd_map);
+        log.error("ANNOTATION_MAP:\t\t{}", annotation_cmd_map);
         cmdAllMap.putAll(tmp);
         return tmp;
     }
@@ -265,7 +269,7 @@ public class CmdMappers {
             }
         }
         auto_cmd_map = tmp_auto;
-//        log.error("AUTO_MAP:\t\t{}", auto_cmd_map);
+        log.error("AUTO_MAP:\t\t{}", auto_cmd_map);
         cmdAllMap.putAll(tmp_auto);
 
         Map<String, CmdMeta> tmp = new LinkedHashMap<String, CmdMeta>(tmp_auto.size());
@@ -290,7 +294,7 @@ public class CmdMappers {
             }
         }
         config_cmd_map = tmp;
-//        log.error("CONFIG_MAP:\t\t{}", config_cmd_map);
+        log.error("CONFIG_MAP:\t\t{}", config_cmd_map);
         cmdAllMap.putAll(tmp);
 
         return tmp;
@@ -309,11 +313,11 @@ public class CmdMappers {
                 Method method = cmd.getClass().getMethod(cmdMethodName, HttpRequest.class, HttpResponse.class);
                 return newCmdMeta(cmd, method);
             } catch (Exception e) {
-//                log.error("cann't find cmd:{},method:{}", new Object[] {
-//                        cmdName,
-//                        cmdMethodName,
-//                        e
-//                });
+                log.error("cann't find cmd:{},method:{}", new Object[] {
+                        cmdName,
+                        cmdMethodName,
+                        e
+                });
             }
         } else {
             String cmdName = _lower(configStr);
@@ -325,10 +329,10 @@ public class CmdMappers {
                 Method method = cmd.getClass().getMethod(config.getCmdDefaultMethod(), HttpRequest.class, HttpResponse.class);
                 return newCmdMeta(cmd, method);
             } catch (Exception e) {
-//                log.error("cann't find cmd:{}", new Object[] {
-//                        cmdName,
-//                        e
-//                });
+                log.error("cann't find cmd:{}", new Object[] {
+                        cmdName,
+                        e
+                });
             }
         }
         return null;
@@ -372,7 +376,7 @@ public class CmdMappers {
 
     public void printFuzzyMap() {
         if (fuzzyMap != null) {
-//            log.error("FUZZY_MAP:\t\t{}", fuzzyMap);
+            log.error("FUZZY_MAP:\t\t{}", fuzzyMap);
         }
     }
 
