@@ -17,7 +17,7 @@
 package cn.wantedonline.puppy;
 
 import cn.wantedonline.puppy.httpserver.component.CmdPageDispatcher;
-import cn.wantedonline.puppy.httpserver.component.NioWorkerStat;
+import cn.wantedonline.puppy.httpserver.stat.NioWorkerStat;
 import cn.wantedonline.puppy.spring.BeanUtil;
 import cn.wantedonline.puppy.spring.SpringBootstrap;
 import cn.wantedonline.puppy.spring.annotation.Config;
@@ -42,7 +42,6 @@ import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**

@@ -79,6 +79,15 @@ public class ContextAttachment implements ChannelFutureListener, Comparable<Cont
         this.encode = this.lastWriteTime = System.currentTimeMillis();
     }
 
+    /**
+     * 标记写结束,并返回增量
+     */
+    public long markWriteEnd() {
+        long ori = this.complete;
+        this.complete = this.lastWriteTime = System.currentTimeMillis();
+        return ori == 0 ? -1 : complete - ori;
+    }
+
     private synchronized void _registerCloseable(Object obj) {
         if (AssertUtil.isEmptyCollection(closeable)) {
             closeable = new HashSet<>(1);
@@ -116,6 +125,10 @@ public class ContextAttachment implements ChannelFutureListener, Comparable<Cont
 
     public long getLastWriteTime() {
         return lastWriteTime;
+    }
+
+    public long getChannelOpenTime() {
+        return channelOpenTime;
     }
 
     public HttpRequest getRequest() {

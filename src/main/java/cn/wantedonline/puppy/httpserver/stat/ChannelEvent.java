@@ -38,9 +38,5 @@ public interface ChannelEvent {
 
     public void channelRead(ChannelHandlerContext ctx, Object msg);
 
-    public void channelReadComplete(ChannelHandlerContext ctx);
-
-    public void channelWritabilityChanged(ChannelHandlerContext ctx);
-
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause);
 }

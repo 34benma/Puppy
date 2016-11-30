@@ -19,6 +19,7 @@ package cn.wantedonline.puppy.httpserver.handler;
 import cn.wantedonline.puppy.httpserver.component.ContextAttachment;
 import cn.wantedonline.puppy.httpserver.component.HttpResponse;
 import cn.wantedonline.puppy.spring.annotation.AfterBootstrap;
+import cn.wantedonline.puppy.spring.annotation.AfterConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -45,7 +46,7 @@ public class TextResponseHandlerManager extends HandlerManager<TextResponseHandl
         return INSTANCE;
     }
 
-    @AfterBootstrap
+    @AfterConfig
     public void initHandlerChain() {
         addFirst(textResponseHandler);
     }

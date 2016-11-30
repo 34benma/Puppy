@@ -55,16 +55,6 @@ public class StatisticManager implements ChannelEvent {
     }
 
     @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) {
-
-    }
-
-    @Override
-    public void channelWritabilityChanged(ChannelHandlerContext ctx) {
-
-    }
-
-    @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
 
     }

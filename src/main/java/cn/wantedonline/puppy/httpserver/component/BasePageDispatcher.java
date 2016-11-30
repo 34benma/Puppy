@@ -16,12 +16,14 @@
 
 package cn.wantedonline.puppy.httpserver.component;
 
+import cn.wantedonline.puppy.httpserver.common.HttpServerConfig;
 import cn.wantedonline.puppy.util.AssertUtil;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import io.netty.util.AttributeKey;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * <pre>
@@ -35,6 +37,9 @@ public abstract class BasePageDispatcher extends AbstractPageDispatcher {
 
     private static final AttributeKey<ContextAttachment> HTTP_ATTACH_KEY = AttributeKey.newInstance("HTTP_ATTACHMENT");
 
+    @Autowired
+    private HttpServerConfig config;
+
     @Override
     public void init() {
 
@@ -43,24 +48,33 @@ public abstract class BasePageDispatcher extends AbstractPageDispatcher {
     public abstract void dispatch(ContextAttachment attachment);
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        super.channelActive(ctx);
-
+    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+        super.channelRegistered(ctx);
+        config.countStat.channelRegistered(ctx);
     }
 
     @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+        super.channelUnregistered(ctx);
+        config.countStat.channelUnregistered(ctx);
+    }
 
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        super.channelActive(ctx);
+        config.countStat.channelActive(ctx);
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        config.countStat.channelInactive(ctx);
         ctx.close();
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         super.exceptionCaught(ctx, cause);
+        config.countStat.exceptionCaught(ctx, cause);
     }
 
     @Override
@@ -85,6 +99,10 @@ public abstract class BasePageDispatcher extends AbstractPageDispatcher {
                 }
             } finally {
                 ChannelFuture future = ctx.writeAndFlush(attach.getResponse().copy());
+                //次数统计
+                config.countStat.responseSended(ctx, attach);
+                //时间标记
+                attach.markWriteEnd();
                 future.addListener(ChannelFutureListener.CLOSE);
             }
         }
@@ -92,7 +110,9 @@ public abstract class BasePageDispatcher extends AbstractPageDispatcher {
 
     private void requestReceived(ChannelHandlerContext ctx, ContextAttachment attachment) {
         HttpResponse response = new HttpResponse(attachment);
+        attachment.markWriteBegin();
         attachment.registerNewMessage(response);
+        config.countStat.requestReceived(ctx, attachment);
         dispatch(attachment);
     }
 

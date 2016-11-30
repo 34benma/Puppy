@@ -16,8 +16,12 @@
 
 package cn.wantedonline.puppy.httpserver.component;
 
+import cn.wantedonline.puppy.httpserver.common.HttpServerConfig;
 import cn.wantedonline.puppy.httpserver.component.HttpRequest;
+import cn.wantedonline.puppy.spring.BeanUtil;
 import cn.wantedonline.puppy.util.Log;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpObjectDecoder;
@@ -25,6 +29,7 @@ import io.netty.handler.codec.http.HttpVersion;
 import org.slf4j.Logger;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * <pre>
@@ -35,6 +40,9 @@ import java.util.Arrays;
  * @since V0.1.0 on 2016/11/19.
  */
 public class HttpRequestDecoder extends HttpObjectDecoder {
+    //这里没有注入到Spring容器中，只能通过这种方式获取Config
+    private HttpServerConfig config = BeanUtil.getTypedBean(HttpServerConfig.class);
+
     private Logger log = Log.getLogger(HttpRequestDecoder.class);
 
     public HttpRequestDecoder(int maxInitialLineLength, int maxHeaderSize, int maxChunkSize) {
@@ -44,6 +52,19 @@ public class HttpRequestDecoder extends HttpObjectDecoder {
     @Override
     protected boolean isDecodingRequest() {
         return true;
+    }
+
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        //收包统计
+        if (msg instanceof ByteBuf) {
+            long bytes = ((ByteBuf) msg).readableBytes();
+            if (bytes > 0) {
+                config.streamStat.getInbound().record(bytes);
+            }
+        }
+        //因为ByteToMessageDecoder自动回将buf清空，因此需要在调用ByteToMessageDecoder的read前收包统计
+        super.channelRead(ctx, msg);
     }
 
     @Override

@@ -17,6 +17,14 @@
 package cn.wantedonline.puppy.httpserver.component;
 
 
+import cn.wantedonline.puppy.httpserver.common.HttpServerConfig;
+import cn.wantedonline.puppy.spring.BeanUtil;
+import cn.wantedonline.puppy.util.AssertUtil;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+
+import java.util.List;
+
 /**
  * <pre>
  *     包装的响应解码器
@@ -27,5 +35,23 @@ package cn.wantedonline.puppy.httpserver.component;
  * @since V0.1.0 on 16/11/25.
  */
 public class HttpResponseEncoder extends io.netty.handler.codec.http.HttpResponseEncoder {
+    //这里没有注入到Spring容器中，只能通过这种方式获取Config
+    private HttpServerConfig config = BeanUtil.getTypedBean(HttpServerConfig.class);
 
+    @Override
+    protected void encode(ChannelHandlerContext ctx, Object msg, List<Object> out) throws Exception {
+        super.encode(ctx, msg, out);
+        //发包流量统计
+        if (AssertUtil.isNotEmptyCollection(out)) {
+            long bytes = 0;
+            for (Object obj : out) {
+                if (obj instanceof ByteBuf) {
+                    bytes += ((ByteBuf)obj).readableBytes();
+                }
+            }
+            if (bytes > 0) {
+                config.streamStat.getOutbound().record(bytes);
+            }
+        }
+    }
 }

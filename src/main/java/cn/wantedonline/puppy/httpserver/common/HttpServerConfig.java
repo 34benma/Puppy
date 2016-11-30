@@ -19,6 +19,8 @@ package cn.wantedonline.puppy.httpserver.common;
 import cn.wantedonline.puppy.httpserver.component.AbstractPageDispatcher;
 import cn.wantedonline.puppy.httpserver.component.HttpRequestDecoder;
 import cn.wantedonline.puppy.httpserver.component.HttpResponseEncoder;
+import cn.wantedonline.puppy.httpserver.stat.CountStat;
+import cn.wantedonline.puppy.httpserver.stat.StreamStat;
 import cn.wantedonline.puppy.spring.annotation.AfterConfig;
 import cn.wantedonline.puppy.spring.annotation.Config;
 import cn.wantedonline.puppy.util.Log;
@@ -77,6 +79,13 @@ public final class HttpServerConfig {
     private NioEventLoopGroup bossEventLoopGroup = new NioEventLoopGroup(1, new NamedThreadFactory("Boss thread $", Thread.MAX_PRIORITY));
     private NioEventLoopGroup workerEventLoopGroup = new NioEventLoopGroup(work_thread_num > 0 ? work_thread_num : PROCESSOR_NUM*2, new NamedThreadFactory("Worker thread $",Thread.NORM_PRIORITY+4));
     private ChannelInitializer httpServerHandler = new HttpServerHandler();
+
+    //*******************V0.2.0 统计需求 Start**************************//
+    @Autowired
+    public CountStat countStat;
+    @Autowired
+    public StreamStat streamStat;
+    //*******************V0.2.0 统计需求 End ***************************//
 
     public static ContentType getRespInnerContentType() {
         return respInnerContentType;
