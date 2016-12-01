@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @since V0.2.0 on 16/11/30.
  */
 @Component
-public class CountStat implements ChannelEvent {
+public class CountStat extends BaseChannelEvent {
     private AtomicLong totalRegChannel = new AtomicLong(0); //总共注册的通道数
     private AtomicLong totalUnregChannel = new AtomicLong(0); //总共去注册通道数
     private AtomicLong totalActiveChannel = new AtomicLong(0); //通道激活总数
@@ -58,11 +58,6 @@ public class CountStat implements ChannelEvent {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         totalInActiveChannel.incrementAndGet();
-    }
-
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
-
     }
 
     @Override

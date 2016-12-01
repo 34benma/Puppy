@@ -99,10 +99,11 @@ public abstract class BasePageDispatcher extends AbstractPageDispatcher {
                 }
             } finally {
                 ChannelFuture future = ctx.writeAndFlush(attach.getResponse().copy());
+                attach.markWriteEnd();
                 //次数统计
                 config.countStat.responseSended(ctx, attach);
-                //时间标记
-                attach.markWriteEnd();
+                //时间统计
+                config.timeSpanStat.writeEnd(attach);
                 future.addListener(ChannelFutureListener.CLOSE);
             }
         }
@@ -112,7 +113,10 @@ public abstract class BasePageDispatcher extends AbstractPageDispatcher {
         HttpResponse response = new HttpResponse(attachment);
         attachment.markWriteBegin();
         attachment.registerNewMessage(response);
+        //次数统计
         config.countStat.requestReceived(ctx, attachment);
+        //时间统计
+        config.timeSpanStat.writeBegin(attachment);
         dispatch(attachment);
     }
 

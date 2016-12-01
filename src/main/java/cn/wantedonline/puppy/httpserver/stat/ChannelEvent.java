@@ -16,6 +16,7 @@
 
 package cn.wantedonline.puppy.httpserver.stat;
 
+import cn.wantedonline.puppy.httpserver.component.ContextAttachment;
 import io.netty.channel.ChannelHandlerContext;
 
 /**
@@ -39,4 +40,12 @@ public interface ChannelEvent {
     public void channelRead(ChannelHandlerContext ctx, Object msg);
 
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause);
+
+    public void messageReceiveBegin(ContextAttachment attach);
+
+    public void messageReceiveEnd(ContextAttachment attach);
+
+    public void writeBegin(ContextAttachment attach);
+
+    public void writeEnd(ContextAttachment attach);
 }

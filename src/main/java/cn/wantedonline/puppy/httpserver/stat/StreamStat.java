@@ -16,6 +16,7 @@
 
 package cn.wantedonline.puppy.httpserver.stat;
 
+import cn.wantedonline.puppy.httpserver.component.ContextAttachment;
 import io.netty.channel.ChannelHandlerContext;
 import org.springframework.stereotype.Component;
 
@@ -30,7 +31,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @since V0.2.0 on 16/11/30.
  */
 @Component
-public class StreamStat implements ChannelEvent {
+public class StreamStat extends BaseChannelEvent {
     private StreamStatEntry inbound = new StreamStatEntry("inbound"); //收包
     private StreamStatEntry outbound = new StreamStatEntry("outbound"); //发包
 
@@ -40,36 +41,6 @@ public class StreamStat implements ChannelEvent {
 
     public StreamStatEntry getOutbound() {
         return outbound;
-    }
-
-    @Override
-    public void channelRegistered(ChannelHandlerContext ctx) {
-
-    }
-
-    @Override
-    public void channelUnregistered(ChannelHandlerContext ctx) {
-
-    }
-
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) {
-
-    }
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) {
-
-    }
-
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
-
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-
     }
 
     public class StreamStatEntry {

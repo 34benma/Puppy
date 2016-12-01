@@ -21,6 +21,7 @@ import cn.wantedonline.puppy.httpserver.component.HttpRequestDecoder;
 import cn.wantedonline.puppy.httpserver.component.HttpResponseEncoder;
 import cn.wantedonline.puppy.httpserver.stat.CountStat;
 import cn.wantedonline.puppy.httpserver.stat.StreamStat;
+import cn.wantedonline.puppy.httpserver.stat.TimeSpanStat;
 import cn.wantedonline.puppy.spring.annotation.AfterConfig;
 import cn.wantedonline.puppy.spring.annotation.Config;
 import cn.wantedonline.puppy.util.Log;
@@ -81,10 +82,19 @@ public final class HttpServerConfig {
     private ChannelInitializer httpServerHandler = new HttpServerHandler();
 
     //*******************V0.2.0 统计需求 Start**************************//
+    @Config(resetable = true)
+    public int slow_decode_threshold = 100;
+    @Config(resetable = true)
+    public int slow_encode_threshold = 500;
+    @Config(resetable = true)
+    public int slow_req_threshold = 1000;
+
     @Autowired
     public CountStat countStat;
     @Autowired
     public StreamStat streamStat;
+    @Autowired
+    public TimeSpanStat timeSpanStat;
     //*******************V0.2.0 统计需求 End ***************************//
 
     public static ContentType getRespInnerContentType() {

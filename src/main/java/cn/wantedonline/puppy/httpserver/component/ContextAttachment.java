@@ -131,6 +131,22 @@ public class ContextAttachment implements ChannelFutureListener, Comparable<Cont
         return channelOpenTime;
     }
 
+    public long getDecode() {
+        return decode;
+    }
+
+    public long getProcess() {
+        return process;
+    }
+
+    public long getEncode() {
+        return encode;
+    }
+
+    public long getComplete() {
+        return complete;
+    }
+
     public HttpRequest getRequest() {
         return request;
     }
