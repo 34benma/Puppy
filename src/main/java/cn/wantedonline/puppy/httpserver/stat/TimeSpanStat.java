@@ -44,10 +44,6 @@ public class TimeSpanStat {
     private AtomicLong slowCount = new AtomicLong(); // 慢的总个数
     private AtomicLong slowSpan = new AtomicLong(); // 慢的总时长
     private int slowThreshold;
-    private String tableHeader;
-    private String htmlTableHeader;
-    private String timeStatFmt;
-    private String timeStatHtmlFmt;
     private boolean warn;
 
     public TimeSpanStat(String name, int slowThreshold, boolean warn, Logger log) {
@@ -55,7 +51,6 @@ public class TimeSpanStat {
         this.slowThreshold = slowThreshold;
         this.log = log;
         this.warn = warn;
-        initFormat(35, 0);
     }
 
     public TimeSpanStat(String name, Logger log) {
@@ -112,35 +107,6 @@ public class TimeSpanStat {
         this.maxSpan = maxSpan;
     }
 
-    public String getTableHeader() {
-        return tableHeader;
-    }
-
-    /** 暂时只处理 times和avg字段的排序，以后有需要再加其它字段 */
-    public String getHtmlTableHeader() {
-        return htmlTableHeader;
-    }
-
-    public String getTableHeader(boolean useTxt) {
-        if (useTxt) {
-            return getTableHeader();
-        }
-        return getHtmlTableHeader();
-    }
-
-    public void initFormat(int nameLen, int nameFullWidthCharNum) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < nameFullWidthCharNum; i++) {
-            sb.append("　");
-        }
-        this.timeStatFmt = "%-" + nameLen + "s %-8s %-20s %-8s %-20s %-20s %-20s %-20s\n";
-        this.tableHeader = String.format(timeStatFmt, sb.toString(), "times", "avg", "slow", "slow_avg", "max", "slow_span", "all_span");
-        // 暂时只处理 times和avg字段的排序，以后有需要再加其它字段
-        this.timeStatHtmlFmt = "<tr><td>%s</td><td nowrap>%s</td><td nowrap>%s</td><td nowrap>%s</td><td nowrap>%s</td><td nowrap>%s</td><td nowrap>%s</td><td nowrap>%s</td></tr>\n";
-        this.htmlTableHeader = String.format(timeStatHtmlFmt, sb.toString(), "<a href=\"?timesOrder=1\">times</a>", "<a href=\"?avgOrder=1\">avg</a>", "slow", "slow_avg", "max", "slow_span",
-                "all_span");
-    }
-
     public void record(long end, long begin, Object arg) {
         if (begin <= 0 || end <= 0) {
             return;
@@ -179,33 +145,6 @@ public class TimeSpanStat {
         }
     }
 
-    @Override
-    public String toString() {
-        return toString(timeStatFmt, name);
-    }
-
-    public String toHtmlString() {
-        return toString(timeStatHtmlFmt, name);
-    }
-
-    public String toString(String first) {
-        return toString(timeStatFmt, first);
-    }
-
-    public String toHtmlString(String first) {
-        return toString(timeStatHtmlFmt, first);
-    }
-
-    public String toString(String timeStatFmt, String first) {
-        long all_numTMP = totalCount.get(); // 请求总次数
-        long all_spanTMP = totalSpan.get(); // 请求总时长
-        long slow_numTMP = slowCount.get(); // 慢的总个数
-        long slow_spanTMP = slowSpan.get(); // 慢的总时长
-        long allAvg = all_numTMP > 0 ? all_spanTMP / all_numTMP : 0; // 请求平均时长
-        long slowAvg = slow_numTMP > 0 ? slow_spanTMP / slow_numTMP : 0; // 慢的平均时长
-        return String.format(timeStatFmt, first, all_numTMP > 0 ? all_numTMP : "", HumanReadableUtil.timeSpan(allAvg), slow_numTMP > 0 ? slow_numTMP : "", HumanReadableUtil.timeSpan(slowAvg),
-                HumanReadableUtil.timeSpan(maxSpan), HumanReadableUtil.timeSpan(slow_spanTMP), HumanReadableUtil.timeSpan(all_spanTMP));
-    }
 
     protected void warn(long end, long begin, Object arg) {
         log.error("SLOW_PROCESS:{}:{} [{}ms]\n", new Object[] {

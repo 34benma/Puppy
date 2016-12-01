@@ -16,8 +16,6 @@
 
 package cn.wantedonline.puppy.httpserver.stat;
 
-import io.netty.channel.ChannelHandlerContext;
-
 /**
  * <pre>
  *     统计中心
@@ -26,36 +24,6 @@ import io.netty.channel.ChannelHandlerContext;
  * @author wangcheng
  * @since V0.2.0 on 16/11/29.
  */
-public class StatisticManager implements ChannelEvent {
+public class StatisticManager {
 
-
-    @Override
-    public void channelRegistered(ChannelHandlerContext ctx) {
-
-    }
-
-    @Override
-    public void channelUnregistered(ChannelHandlerContext ctx) {
-
-    }
-
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) {
-
-    }
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) {
-
-    }
-
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
-
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-
-    }
 }
