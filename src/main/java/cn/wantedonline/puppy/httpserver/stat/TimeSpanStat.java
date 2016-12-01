@@ -20,10 +20,10 @@ import cn.wantedonline.puppy.httpserver.common.HttpServerConfig;
 import cn.wantedonline.puppy.httpserver.component.ContextAttachment;
 import cn.wantedonline.puppy.httpserver.component.HttpResponse;
 import cn.wantedonline.puppy.spring.annotation.AfterConfig;
+import cn.wantedonline.puppy.spring.annotation.Config;
 import cn.wantedonline.puppy.util.Log;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -40,8 +40,12 @@ import java.util.concurrent.atomic.AtomicLong;
 public class TimeSpanStat extends BaseChannelEvent {
     private Logger log = Log.getLogger(TimeSpanStat.class);
 
-    @Autowired
-    private HttpServerConfig config;
+    @Config(resetable = true)
+    public int slow_decode_threshold = 100;
+    @Config(resetable = true)
+    public int slow_encode_threshold = 500;
+    @Config(resetable = true)
+    public int slow_req_threshold = 1000;
 
     private TimeSpanStatEntry allTSS; // 全部统计
     private TimeSpanStatEntry decodeTSS; // 解码统计
@@ -80,11 +84,11 @@ public class TimeSpanStat extends BaseChannelEvent {
 
     @AfterConfig
     public void reset() {
-        decodeTSS = new TimeSpanStatEntry("decode",config.slow_decode_threshold, true, log);
-        processTSS = new TimeSpanStatEntry("process", config.slow_req_threshold, true, log);
-        encodeTSS = new TimeSpanStatEntry("encode", config.slow_encode_threshold, true, log);
-        allTSS = new TimeSpanStatEntry("all",config.slow_req_threshold, true, log);
-        okTSS = new TimeSpanStatEntry("200OK", config.slow_req_threshold, true, log);
+        decodeTSS = new TimeSpanStatEntry("decode",slow_decode_threshold, true, log);
+        processTSS = new TimeSpanStatEntry("process", slow_req_threshold, true, log);
+        encodeTSS = new TimeSpanStatEntry("encode", slow_encode_threshold, true, log);
+        allTSS = new TimeSpanStatEntry("all",slow_req_threshold, true, log);
+        okTSS = new TimeSpanStatEntry("200OK", slow_req_threshold, true, log);
     }
 
     public TimeSpanStatEntry getAllTSS() {
@@ -172,6 +176,14 @@ public class TimeSpanStat extends BaseChannelEvent {
             }
         }
 
+        /**
+         * 针对不是一次发送的情况
+         * @param incr
+         * @param end
+         * @param begin
+         * @param uri
+         * @param arg
+         */
         public void record(long incr, long end, long begin, String uri, Object arg) {
             if (incr <= 0 || end <= 0 || begin <= 0) {
                 return;

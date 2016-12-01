@@ -77,18 +77,18 @@ public final class HttpServerConfig {
     @Autowired
     private AbstractPageDispatcher dispatcher;
 
-    private NioEventLoopGroup bossEventLoopGroup = new NioEventLoopGroup(1, new NamedThreadFactory("Boss thread $", Thread.MAX_PRIORITY));
-    private NioEventLoopGroup workerEventLoopGroup = new NioEventLoopGroup(work_thread_num > 0 ? work_thread_num : PROCESSOR_NUM*2, new NamedThreadFactory("Worker thread $",Thread.NORM_PRIORITY+4));
-    private ChannelInitializer httpServerHandler = new HttpServerHandler();
+    private NioEventLoopGroup bossEventLoopGroup;
+    private NioEventLoopGroup workerEventLoopGroup;
+    private ChannelInitializer httpServerHandler;
+
+    {
+        bossEventLoopGroup = new NioEventLoopGroup(1, new NamedThreadFactory("Boss thread $", Thread.MAX_PRIORITY));
+        int workThreads = work_thread_num > 0 ? work_thread_num : PROCESSOR_NUM*2;
+        workerEventLoopGroup = new NioEventLoopGroup(workThreads, new NamedThreadFactory("Worker thread $",Thread.NORM_PRIORITY+4));
+        httpServerHandler = new HttpServerHandler();
+    }
 
     //*******************V0.2.0 统计需求 Start**************************//
-    @Config(resetable = true)
-    public int slow_decode_threshold = 100;
-    @Config(resetable = true)
-    public int slow_encode_threshold = 500;
-    @Config(resetable = true)
-    public int slow_req_threshold = 1000;
-
     @Autowired
     public CountStat countStat;
     @Autowired
