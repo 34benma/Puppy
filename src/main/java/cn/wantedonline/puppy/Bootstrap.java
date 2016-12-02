@@ -146,6 +146,7 @@ public class Bootstrap {
                     serverChannelFuture = b.bind(new InetSocketAddress(port)).sync();
                     long endBind = System.currentTimeMillis();
                     long rb = retryBind.get();
+
                     if (rb > 0) {
                         System.out.println("------------------------------> 重试绑定成功，最后一次重试耗时："+ (endBind-rb) + "MS");
                     }
