@@ -18,11 +18,13 @@ package cn.wantedonline.puppy;
 
 import cn.wantedonline.puppy.httpserver.component.CmdPageDispatcher;
 import cn.wantedonline.puppy.httpserver.stat.NioWorkerStat;
+import cn.wantedonline.puppy.httpserver.stat.StatisticManager;
 import cn.wantedonline.puppy.spring.BeanUtil;
 import cn.wantedonline.puppy.spring.SpringBootstrap;
 import cn.wantedonline.puppy.spring.annotation.Config;
 import cn.wantedonline.puppy.util.*;
 import cn.wantedonline.puppy.httpserver.common.HttpServerConfig;
+import cn.wantedonline.puppy.util.concurrent.ConcurrentUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
@@ -60,6 +62,10 @@ public class Bootstrap {
     private HttpServerConfig httpServerConfig;
     @Autowired
     private CmdPageDispatcher dispatcher;
+    @Autowired
+    private NioWorkerStat nioWorkerStat;
+    @Autowired
+    private StatisticManager statisticManager;
 
     private Runnable shutdownRunnable;
 
@@ -92,7 +98,7 @@ public class Bootstrap {
     private ServerBootstrap initHttpServerBootstrap() {
         EventLoopGroup bossGroup = httpServerConfig.getBossEventLoopGroup();
         NioEventLoopGroup workerGroup = httpServerConfig.getWorkerEventLoopGroup();
-        NioWorkerStat.registerWorkers(workerGroup);
+        nioWorkerStat.registerWorkers(workerGroup);
         ServerBootstrap serverBootstrap = new ServerBootstrap();
         serverBootstrap.group(bossGroup,workerGroup)
                        .channel(NioServerSocketChannel.class)
@@ -111,6 +117,12 @@ public class Bootstrap {
         long begin = System.currentTimeMillis();
         //替换掉Netty默认日志组件
         InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
+        //读取上次服务器停止时的统计数据
+        try {
+            statisticManager.readStatisticData();
+        } catch (Throwable t) {//读取统计错误时不应该直接退出启动，只要打印错误信息就好了
+            log.error("read statistic data error, error info{}", t);
+        }
         System.out.println("------------------------------> 系统组件准备完毕，耗时：" + (System.currentTimeMillis() - begin) + "MS");
     }
 
@@ -304,6 +316,9 @@ public class Bootstrap {
         try {
             serverChannelFuture.channel().closeFuture();
             httpServerConfig.stopEventLoopGroup();
+            //将统计数据写入文件
+            statisticManager.writeStatisticData();
+            Thread.currentThread().sleep(1000); //等待其他线程打印完才打印"ByeBye"字符串
         } catch (Throwable e) {
             e.printStackTrace();
         }

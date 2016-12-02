@@ -14,8 +14,9 @@
  *   limitations under the License.
  */
 
-package cn.wantedonline.puppy.util;
+package cn.wantedonline.puppy.util.concurrent;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -56,8 +57,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * TODO:
  * 1.尝试引入信号量,解决插入和扩容的问题
  *
+ *  @author 迅雷 zengdong
+ *  @author wangcheng
+ *  @since V0.2.0 on 2016-12-01
  */
-public class ConcurrentCircularQueue<E> implements List<E> {
+public class ConcurrentCircularQueue<E> implements List<E>, Serializable {
 
     /**
      * The size of the queue. There is always one unused element in the queue.
@@ -84,6 +88,8 @@ public class ConcurrentCircularQueue<E> implements List<E> {
      */
     private volatile boolean lock = false;
 
+
+
     /**
      * The minimum maxSize is 1. Creates a circularQueue with a initial size of 10.
      */
@@ -95,7 +101,7 @@ public class ConcurrentCircularQueue<E> implements List<E> {
      * Creates a CircularQueue with a initialSize and a maxSize. The queue is dynamicaly expanded until maxSize is reached. This behaivor is usefull for large queues that might not always get totaly
      * filled. For queues that are always filled it is adviced to set initialSize and maxSize to the same value. The minimum maxSize is 1.
      */
-    private ConcurrentCircularQueue(int initialSize, int maxSize) {// private掉了~暂时不允许自定义初始容量
+    public ConcurrentCircularQueue(int initialSize, int maxSize) {// private掉了~暂时不允许自定义初始容量
         // this is asserted
         if (maxSize < 1) {
             throw new RuntimeException("Min size of the CircularQueue is 1");
@@ -126,6 +132,7 @@ public class ConcurrentCircularQueue<E> implements List<E> {
                 if (tailIdx.compareAndSet(curIdx, newIdx)) {// 如果修改成功的话，即返回。CAS原子操作
                     elements[curIdx] = obj;
                     return (E) dropObj;
+
                 }// 不成功，重试
             }
         }
@@ -193,7 +200,6 @@ public class ConcurrentCircularQueue<E> implements List<E> {
             if (isEmpty()) {
                 throw new NoSuchElementException();
             }
-
             int curIdx = tailIdx.get();
             int newIdx = prevIndex(curIdx);
             if (curIdx == tailIdx.get()) {// 是否被其它线程抢先修改值

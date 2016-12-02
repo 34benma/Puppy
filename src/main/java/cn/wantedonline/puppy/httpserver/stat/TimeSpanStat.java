@@ -16,16 +16,17 @@
 
 package cn.wantedonline.puppy.httpserver.stat;
 
-import cn.wantedonline.puppy.httpserver.common.HttpServerConfig;
 import cn.wantedonline.puppy.httpserver.component.ContextAttachment;
 import cn.wantedonline.puppy.httpserver.component.HttpResponse;
 import cn.wantedonline.puppy.spring.annotation.AfterConfig;
 import cn.wantedonline.puppy.spring.annotation.Config;
+import cn.wantedonline.puppy.util.DateStringUtil;
 import cn.wantedonline.puppy.util.Log;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -52,6 +53,87 @@ public class TimeSpanStat extends BaseChannelEvent {
     private TimeSpanStatEntry encodeTSS; // 编码统计
     private TimeSpanStatEntry processTSS; // 业务统计
     private TimeSpanStatEntry okTSS; // 处理完毕
+
+    public TimeSpanSnapshot tickTimeSpanSnapshot() {
+        TimeSpanSnapshot snapshot = new TimeSpanSnapshot();
+        snapshot.setAllTSS(allTSS);
+        snapshot.setDecodeTSS(decodeTSS);
+        snapshot.setEncodeTSS(encodeTSS);
+        snapshot.setOkTSS(okTSS);
+        snapshot.setProcessTSS(processTSS);
+        return snapshot;
+    }
+
+    public TimeSpanSnapshot tickAndReset() {
+        TimeSpanSnapshot snapshot = tickTimeSpanSnapshot();
+        reset();
+        return snapshot;
+    }
+
+    public class TimeSpanSnapshot {
+        private Date date;
+        private TimeSpanStatEntry allTSS; // 全部统计
+        private TimeSpanStatEntry decodeTSS; // 解码统计
+        private TimeSpanStatEntry encodeTSS; // 编码统计
+        private TimeSpanStatEntry processTSS; // 业务统计
+        private TimeSpanStatEntry okTSS; // 处理完毕
+
+        public TimeSpanSnapshot() {
+            this.date = new Date();
+        }
+
+        public TimeSpanStatEntry getAllTSS() {
+            return allTSS;
+        }
+
+        public void setAllTSS(TimeSpanStatEntry allTSS) {
+            this.allTSS = allTSS;
+        }
+
+        public TimeSpanStatEntry getDecodeTSS() {
+            return decodeTSS;
+        }
+
+        public void setDecodeTSS(TimeSpanStatEntry decodeTSS) {
+            this.decodeTSS = decodeTSS;
+        }
+
+        public TimeSpanStatEntry getEncodeTSS() {
+            return encodeTSS;
+        }
+
+        public void setEncodeTSS(TimeSpanStatEntry encodeTSS) {
+            this.encodeTSS = encodeTSS;
+        }
+
+        public TimeSpanStatEntry getProcessTSS() {
+            return processTSS;
+        }
+
+        public void setProcessTSS(TimeSpanStatEntry processTSS) {
+            this.processTSS = processTSS;
+        }
+
+        public TimeSpanStatEntry getOkTSS() {
+            return okTSS;
+        }
+
+        public void setOkTSS(TimeSpanStatEntry okTSS) {
+            this.okTSS = okTSS;
+        }
+
+        @Override
+        public String toString() {
+            return "TimeSpanSnapshot{" +
+                    "date=" + DateStringUtil.DEFAULT.format(date) +
+                    ", allTSS=" + allTSS +
+                    ", decodeTSS=" + decodeTSS +
+                    ", encodeTSS=" + encodeTSS +
+                    ", processTSS=" + processTSS +
+                    ", okTSS=" + okTSS +
+                    '}';
+        }
+    }
 
     @Override
     public void writeBegin(ContextAttachment attach) {
@@ -207,12 +289,27 @@ public class TimeSpanStat extends BaseChannelEvent {
             }
         }
 
-        protected void warn(long end, long begin, String uri,Object arg) {
+        @Override
+        public String toString() {
+            return "TimeSpanStatEntry{" +
+                    "name='" + name + '\'' +
+                    ", totalCount=" + totalCount +
+                    ", totalSpan=" + totalSpan +
+                    ", maxSpan=" + maxSpan +
+                    ", slowCount=" + slowCount +
+                    ", slowSpan=" + slowSpan +
+                    ", slowThreshold=" + slowThreshold +
+                    '}';
+        }
+
+        protected void warn(long end, long begin, String uri, Object arg) {
             log.warn("SLOW_PROCESS FOR {}:{}:{} [{}ms]\n", uri, new Object[]{
                     name,
                     arg,
                     end - begin
             });
+
+
         }
 
         public boolean isNeedReset() {

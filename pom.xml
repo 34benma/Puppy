@@ -19,9 +19,16 @@
         <javamail.version>1.4</javamail.version>
         <slf4j-api.version>1.7.4</slf4j-api.version>
         <javax.servlet-api.version>3.0.1</javax.servlet-api.version>
+        <fastjson.version>1.2.21</fastjson.version>
     </properties>
 
     <dependencies>
+        <!-- https://mvnrepository.com/artifact/com.alibaba/fastjson -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>${fastjson.version}</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/commons-lang/commons-lang -->
         <dependency>
             <groupId>commons-lang</groupId>

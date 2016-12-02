@@ -16,13 +16,17 @@
 
 package cn.wantedonline.puppy.httpserver.stat;
 
+import cn.wantedonline.puppy.httpserver.common.HttpServerConfig;
 import cn.wantedonline.puppy.util.AssertUtil;
+import cn.wantedonline.puppy.util.DateStringUtil;
 import io.netty.channel.nio.NioEventLoop;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.ThreadProperties;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -34,14 +38,134 @@ import java.util.List;
  * @author wangcheng
  * @since V0.1.0 on 2016/11/27.
  */
+@Component
 public class NioWorkerStat {
-    private static List<NioEventLoop> workExecutors;
-    private static boolean inited = false;
-    private static final String headinfoFmt = "%-10s %-25s %-10s %-10s %-16s %-12s %-16s\n";
-    private static final String threadinfoFmt = "%-10s %-25s %-10s %-11s";
-    private static final String taskinfoFmt = "%-16s %-12s %-16s";
+    private List<NioEventLoop> workExecutors;
+    private boolean inited = false;
+    private final String headinfoFmt = "%-10s %-25s %-10s %-10s %-16s %-12s %-16s\n";
+    private final String threadinfoFmt = "%-10s %-25s %-10s %-11s";
+    private final String taskinfoFmt = "%-16s %-12s %-16s";
 
-    private static String workerThreadStat(NioEventLoop worker) {
+    public NioWorkerStatSnapshot tickNioWorkerStatSnapshot() {
+        NioWorkerStatSnapshot snapshot = new NioWorkerStatSnapshot();
+        snapshot.setNioWorkerStatusBeanList(workExecutors);
+        return snapshot;
+    }
+
+    public class NioWorkerStatSnapshot {
+        private Date date;
+        private List<NioWorkerStatusBean> statusBeenList = new ArrayList<>(HttpServerConfig.PROCESSOR_NUM*2);
+
+        public NioWorkerStatSnapshot() {
+            this.date = new Date();
+        }
+
+        public void setNioWorkerStatusBeanList(List<NioEventLoop> workExecutors) {
+            if (inited) {
+                for (NioEventLoop worker : workExecutors) {
+                    NioWorkerStatusBean bean = new NioWorkerStatusBean();
+                    ThreadProperties tp = worker.threadProperties();
+                    bean.setThreadId(tp.id());
+                    bean.setThreadName(tp.name());
+                    bean.setThreadPriority(tp.priority());
+                    bean.setThreadStatus(tp.state());
+                    bean.setEventLoopStatus(NioWorkerStatus(worker));
+                    bean.setI_O_ratio(worker.getIoRatio());
+                    bean.setPendingTasks(worker.pendingTasks());
+                    statusBeenList.add(bean);
+                }
+            }
+        }
+
+        @Override
+        public String toString() {
+            return "NioWorkerStatSnapshot{" +
+                    "date=" + DateStringUtil.DEFAULT.format(date) +
+                    ", statusBeenList=" + statusBeenList +
+                    '}';
+        }
+    }
+
+    public class NioWorkerStatusBean {
+        private long threadId;
+        private String threadName;
+        private int threadPriority;
+        private Thread.State threadStatus;
+        private int pendingTasks;
+        private int I_O_ratio;
+        private String EventLoopStatus;
+
+        public long getThreadId() {
+            return threadId;
+        }
+
+        public void setThreadId(long threadId) {
+            this.threadId = threadId;
+        }
+
+        public String getThreadName() {
+            return threadName;
+        }
+
+        public void setThreadName(String threadName) {
+            this.threadName = threadName;
+        }
+
+        public int getThreadPriority() {
+            return threadPriority;
+        }
+
+        public void setThreadPriority(int threadPriority) {
+            this.threadPriority = threadPriority;
+        }
+
+        public Thread.State getThreadStatus() {
+            return threadStatus;
+        }
+
+        public void setThreadStatus(Thread.State threadStatus) {
+            this.threadStatus = threadStatus;
+        }
+
+        public int getPendingTasks() {
+            return pendingTasks;
+        }
+
+        public void setPendingTasks(int pendingTasks) {
+            this.pendingTasks = pendingTasks;
+        }
+
+        public int getI_O_ratio() {
+            return I_O_ratio;
+        }
+
+        public void setI_O_ratio(int i_O_ratio) {
+            I_O_ratio = i_O_ratio;
+        }
+
+        public String getEventLoopStatus() {
+            return EventLoopStatus;
+        }
+
+        public void setEventLoopStatus(String eventLoopStatus) {
+            EventLoopStatus = eventLoopStatus;
+        }
+
+        @Override
+        public String toString() {
+            return "NioWorkerStatusBean{" +
+                    "threadId=" + threadId +
+                    ", threadName='" + threadName + '\'' +
+                    ", threadPriority=" + threadPriority +
+                    ", threadStatus=" + threadStatus +
+                    ", pendingTasks=" + pendingTasks +
+                    ", I_O_ratio=" + I_O_ratio +
+                    ", EventLoopStatus='" + EventLoopStatus + '\'' +
+                    '}';
+        }
+    }
+
+    private String workerThreadStat(NioEventLoop worker) {
         StringBuilder tmp = new StringBuilder();
         if (AssertUtil.isNotNull(worker)) {
             ThreadProperties tp = worker.threadProperties();
@@ -50,7 +174,7 @@ public class NioWorkerStat {
         return tmp.toString();
     }
 
-    private static String workerTaskStat(NioEventLoop w) {
+    private String workerTaskStat(NioEventLoop w) {
         StringBuilder tmp = new StringBuilder();
         if (AssertUtil.isNotNull(w)) {
             tmp.append(String.format(taskinfoFmt,w.pendingTasks(),w.getIoRatio(), NioWorkerStatus(w)));
@@ -62,7 +186,7 @@ public class NioWorkerStat {
         return w.isShutdown() ? "ShutDown" : w.isShuttingDown() ? "ShuttingDown" : w.isTerminated() ? "Terminated" : "Running";
     }
 
-    public static String statNioWorkers() {
+    public String statNioWorkers() {
         StringBuilder tmp = new StringBuilder();
         tmp.append(String.format(headinfoFmt, "Thread-id", "Thread-name", "Priority","Status","PendingTasks","I/ORatio", "EventLoopStatus"));
         if (inited) {
@@ -76,7 +200,7 @@ public class NioWorkerStat {
         return tmp.toString();
     }
 
-    public static void registerWorkers(NioEventLoopGroup eventLoopGroup) {
+    public void registerWorkers(NioEventLoopGroup eventLoopGroup) {
         Iterator<EventExecutor> iterator = eventLoopGroup.iterator();
         workExecutors = new ArrayList<>(eventLoopGroup.executorCount());
         while(iterator.hasNext()) {

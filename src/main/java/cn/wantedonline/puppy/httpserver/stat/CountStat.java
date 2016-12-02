@@ -17,9 +17,12 @@
 package cn.wantedonline.puppy.httpserver.stat;
 
 import cn.wantedonline.puppy.httpserver.component.ContextAttachment;
+import cn.wantedonline.puppy.spring.annotation.AfterConfig;
+import cn.wantedonline.puppy.util.DateStringUtil;
 import io.netty.channel.ChannelHandlerContext;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -39,6 +42,109 @@ public class CountStat extends BaseChannelEvent {
     private AtomicLong totalReqCount = new AtomicLong(0); //接受Http请求总次数
     private AtomicLong totalRespCount = new AtomicLong(0); //响应Http请求总次数
     private AtomicLong exceptionCount = new AtomicLong(0); //发生异常的总次数
+
+    public CountStatSnapshot tickCountStatSnapshot() {
+        CountStatSnapshot snapshot = new CountStatSnapshot();
+        snapshot.setTotalRegChannel(totalRegChannel);
+        snapshot.setTotalUnregChannel(totalUnregChannel);
+        snapshot.setTotalActiveChannel(totalActiveChannel);
+        snapshot.setTotalInActiveChannel(totalInActiveChannel);
+        snapshot.setTotalReqCount(totalReqCount);
+        snapshot.setTotalRespCount(totalRespCount);
+        snapshot.setExceptionCount(exceptionCount);
+        return snapshot;
+    }
+
+    public CountStatSnapshot tickAndReset() {
+        CountStatSnapshot snapshot = tickCountStatSnapshot();
+        reset();
+        return snapshot;
+    }
+
+    public class CountStatSnapshot {
+        private AtomicLong totalRegChannel = new AtomicLong(0); //总共注册的通道数
+        private AtomicLong totalUnregChannel = new AtomicLong(0); //总共去注册通道数
+        private AtomicLong totalActiveChannel = new AtomicLong(0); //通道激活总数
+        private AtomicLong totalInActiveChannel = new AtomicLong(0); //通道去激活总数
+        private AtomicLong totalReqCount = new AtomicLong(0); //接受Http请求总次数
+        private AtomicLong totalRespCount = new AtomicLong(0); //响应Http请求总次数
+        private AtomicLong exceptionCount = new AtomicLong(0); //发生异常的总次数
+        private Date date = new Date();
+
+        public CountStatSnapshot() {
+            this.date = new Date();
+        }
+
+        public AtomicLong getTotalRegChannel() {
+            return totalRegChannel;
+        }
+
+        public void setTotalRegChannel(AtomicLong totalRegChannel) {
+            this.totalRegChannel = totalRegChannel;
+        }
+
+        public AtomicLong getTotalUnregChannel() {
+            return totalUnregChannel;
+        }
+
+        public void setTotalUnregChannel(AtomicLong totalUnregChannel) {
+            this.totalUnregChannel = totalUnregChannel;
+        }
+
+        public AtomicLong getTotalActiveChannel() {
+            return totalActiveChannel;
+        }
+
+        public void setTotalActiveChannel(AtomicLong totalActiveChannel) {
+            this.totalActiveChannel = totalActiveChannel;
+        }
+
+        public AtomicLong getTotalInActiveChannel() {
+            return totalInActiveChannel;
+        }
+
+        public void setTotalInActiveChannel(AtomicLong totalInActiveChannel) {
+            this.totalInActiveChannel = totalInActiveChannel;
+        }
+
+        public AtomicLong getTotalReqCount() {
+            return totalReqCount;
+        }
+
+        public void setTotalReqCount(AtomicLong totalReqCount) {
+            this.totalReqCount = totalReqCount;
+        }
+
+        public AtomicLong getTotalRespCount() {
+            return totalRespCount;
+        }
+
+        public void setTotalRespCount(AtomicLong totalRespCount) {
+            this.totalRespCount = totalRespCount;
+        }
+
+        public AtomicLong getExceptionCount() {
+            return exceptionCount;
+        }
+
+        public void setExceptionCount(AtomicLong exceptionCount) {
+            this.exceptionCount = exceptionCount;
+        }
+
+        @Override
+        public String toString() {
+            return "CountStatSnapshot{" +
+                    "date=" + DateStringUtil.DEFAULT.format(date) +
+                    ", totalRegChannel=" + totalRegChannel +
+                    ", totalUnregChannel=" + totalUnregChannel +
+                    ", totalActiveChannel=" + totalActiveChannel +
+                    ", totalInActiveChannel=" + totalInActiveChannel +
+                    ", totalReqCount=" + totalReqCount +
+                    ", totalRespCount=" + totalRespCount +
+                    ", exceptionCount=" + exceptionCount +
+                    '}';
+        }
+    }
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) {
@@ -127,5 +233,16 @@ public class CountStat extends BaseChannelEvent {
 
     public void setExceptionCount(long exceptionCount) {
         this.exceptionCount.set(exceptionCount);
+    }
+
+    @AfterConfig
+    public void reset() {
+        totalRegChannel.set(0);
+        totalUnregChannel.set(0);
+        totalActiveChannel.set(0);
+        totalInActiveChannel.set(0);
+        totalReqCount.set(0);
+        totalRespCount.set(0);
+        exceptionCount.set(0);
     }
 }

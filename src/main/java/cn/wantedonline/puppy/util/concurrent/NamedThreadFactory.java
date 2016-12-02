@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-package cn.wantedonline.puppy.util;
+package cn.wantedonline.puppy.util.concurrent;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;

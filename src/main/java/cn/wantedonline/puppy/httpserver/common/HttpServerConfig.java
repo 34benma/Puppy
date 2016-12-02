@@ -25,7 +25,7 @@ import cn.wantedonline.puppy.httpserver.stat.TimeSpanStat;
 import cn.wantedonline.puppy.spring.annotation.AfterConfig;
 import cn.wantedonline.puppy.spring.annotation.Config;
 import cn.wantedonline.puppy.util.Log;
-import cn.wantedonline.puppy.util.NamedThreadFactory;
+import cn.wantedonline.puppy.util.concurrent.NamedThreadFactory;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
