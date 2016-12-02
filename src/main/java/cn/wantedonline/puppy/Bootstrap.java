@@ -136,6 +136,7 @@ public class Bootstrap {
             boolean binded = false;
             long beginBind = System.currentTimeMillis();
             long lastPrintTime = 0;
+
             while (!binded) {
                 try {
                     long thisPrintTime = System.currentTimeMillis();
