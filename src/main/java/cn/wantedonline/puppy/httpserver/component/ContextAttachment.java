@@ -174,6 +174,7 @@ public class ContextAttachment implements ChannelFutureListener, Comparable<Cont
 
     @Override
     public void operationComplete(ChannelFuture future) throws Exception {
+        running = false;
 
     }
 

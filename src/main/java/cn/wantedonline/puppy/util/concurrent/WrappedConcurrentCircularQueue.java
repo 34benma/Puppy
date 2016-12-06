@@ -103,6 +103,10 @@ public class WrappedConcurrentCircularQueue<E> extends ConcurrentCircularQueue<E
         prohibitWriting = true;
     }
 
+    public boolean isProhibitWrite() {
+        return prohibitWriting;
+    }
+
     public void setCanWrite() {
         prohibitWriting = false;
     }

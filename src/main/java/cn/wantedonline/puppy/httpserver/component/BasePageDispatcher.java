@@ -104,7 +104,7 @@ public abstract class BasePageDispatcher extends AbstractPageDispatcher {
                 config.countStat.responseSended(ctx, attach);
                 //时间统计
                 config.timeSpanStat.writeEnd(attach);
-                future.addListener(ChannelFutureListener.CLOSE);
+                future.addListener(attach);
             }
         }
     }

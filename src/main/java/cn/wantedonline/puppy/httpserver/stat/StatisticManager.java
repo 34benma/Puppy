@@ -123,8 +123,7 @@ public class StatisticManager {
         if (init) {
             return;
         }
-//        schedulable.scheduleAtFixedRateWithDelayMs(getSnapshotInitialDelay(), snapshotMilliseconds);
-        schedulable.scheduleAtFixedRateWithDelayMs(100, 1000);
+        schedulable.scheduleAtFixedRateWithDelayMs(getSnapshotInitialDelay(), snapshotMilliseconds);
     }
 
     public void readStatisticData() {
