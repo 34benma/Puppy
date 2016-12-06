@@ -57,6 +57,8 @@ public class StatisticManager {
     private boolean openStreamStat = true;
     @Config
     private boolean openTimeSpanStat = true;
+    @Config
+    private boolean openCmdCountStat = true;
 
     @Config
     private int snapshotDay = 7;
