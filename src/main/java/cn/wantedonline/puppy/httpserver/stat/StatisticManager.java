@@ -155,7 +155,8 @@ public class StatisticManager {
     }
 
     private WrappedConcurrentCircularQueue readStatisticSnapshotsDataFromFile(String fileName, Charset charset) {
-        File file = new File(fileName);
+        String filePath = getClass().getProtectionDomain().getCodeSource().getLocation().getPath() + fileName;
+        File file = new File(filePath);
         try(BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))) {
             StringBuilder text = new StringBuilder();
             if (file.exists()) {
@@ -163,13 +164,12 @@ public class StatisticManager {
                 while (AssertUtil.isNotNull(lineText = reader.readLine())) {
                     text.append(lineText);
                 }
-                System.out.println(text);
                 return JSONObject.parseObject(text.toString(), WrappedConcurrentCircularQueue.class);
             }
         } catch (FileNotFoundException e) {
-            log.error("read statistic snapshots data error, not found file... error info {}",e);
+            log.error("read statistic snapshots data error, not found file,if it is the first time read, you can ignore it. error info",e);
         } catch (IOException e) {
-            log.error("read statistic snapshots data error, file is bad... error info {}", e);
+            log.error("read statistic snapshots data error, file is bad... error info", e);
         }
         return null;
     }
@@ -194,11 +194,6 @@ public class StatisticManager {
         String truncateDateStr = DateStringUtil.DEFAULT.now().substring(0, 15) + "0:00";// 这是每隔10min
         Date truncateDate = DateStringUtil.DEFAULT.parse(truncateDateStr);
         return truncateDate.getTime() + snapshotMilliseconds - System.currentTimeMillis();
-    }
-
-    public static void main(String[] args) {
-        StatisticManager manager = new StatisticManager();
-        manager.readStatisticData();
     }
 
 }

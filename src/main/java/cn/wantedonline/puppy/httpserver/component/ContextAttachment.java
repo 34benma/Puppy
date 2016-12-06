@@ -54,6 +54,7 @@ public class ContextAttachment implements ChannelFutureListener, Comparable<Cont
     private List<Throwable> throwables;
 
     private volatile boolean running;
+    private volatile boolean closeAfterOperationComplete = true;
 
     public void registerThrowable(Throwable ex) {
         if (AssertUtil.isNotEmptyCollection(throwables)) {
@@ -175,7 +176,12 @@ public class ContextAttachment implements ChannelFutureListener, Comparable<Cont
     @Override
     public void operationComplete(ChannelFuture future) throws Exception {
         running = false;
-
+        if (closeAfterOperationComplete) {
+            future.channel().close();
+        }
+        if (AssertUtil.isNotNull(request)) {
+            request.clean();
+        }
     }
 
     @Override

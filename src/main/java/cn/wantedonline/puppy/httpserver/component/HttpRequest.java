@@ -76,6 +76,10 @@ public class HttpRequest extends DefaultFullHttpRequest {
         super(httpVersion, method, uri, Unpooled.EMPTY_BUFFER,validateHeaders);
     }
 
+    public void clean() {
+        //TODO:清理资源,比如长连接或者创建了文件资源等
+    }
+
     public long getCreateTime() {
         return createTime;
     }
