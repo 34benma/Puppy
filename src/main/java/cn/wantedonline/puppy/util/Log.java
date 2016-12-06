@@ -30,6 +30,10 @@ import org.slf4j.LoggerFactory;
 public class Log {
     private Log() {}
 
+    public static Logger getLogger() {
+        return LoggerFactory.getLogger(Thread.currentThread().getStackTrace()[2].getClassName());
+    }
+
     /**
      * 获得代表obj的类的Logger,使用getLogger(this)来获得对应子类的logger
      *
@@ -65,6 +69,10 @@ public class Log {
         return LoggerFactory.getLogger(prefix + "." + obj.getClass().getName() + "." + suffix);
     }
 
+    public static Logger getLoggerWith(String prefix, String suffix) {
+        return LoggerFactory.getLogger(prefix + "." + Thread.currentThread().getStackTrace()[2].getClassName() + "." + suffix);
+    }
+
     /**
      * 通过对象和前缀来获得Logger
      *
@@ -76,6 +84,10 @@ public class Log {
         return LoggerFactory.getLogger(prefix + "." + obj.getClass().getName());
     }
 
+    public static Logger getLoggerWithPrefix(String prefix) {
+        return LoggerFactory.getLogger(prefix + "." + Thread.currentThread().getStackTrace()[2].getClassName());
+    }
+
     /**
      * 通过对象和后缀来获得Logger
      *
@@ -85,5 +97,9 @@ public class Log {
      */
     public static Logger getLoggerWithSuffix(Object obj, String suffix) {
         return LoggerFactory.getLogger(obj.getClass().getName() + "." + suffix);
+    }
+
+    public static Logger getLoggerWithSuffix(String suffix) {
+        return LoggerFactory.getLogger(Thread.currentThread().getStackTrace()[2].getClassName() + "." + suffix);
     }
 }
