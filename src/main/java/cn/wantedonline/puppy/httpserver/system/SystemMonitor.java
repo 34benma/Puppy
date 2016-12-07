@@ -33,6 +33,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import cn.wantedonline.puppy.util.AssertUtil;
 import cn.wantedonline.puppy.util.HumanReadableUtil;
 import cn.wantedonline.puppy.util.Log;
 import cn.wantedonline.puppy.util.concurrent.ConcurrentUtil;
@@ -94,9 +95,9 @@ public class SystemMonitor {
                             long time = threadMXBean.getThreadCpuTime(id);
                             thisAllTime.put(id, time);
                             long lastTime = 0;
-                            if (lastAllTime != null) {
+                            if (AssertUtil.isNotEmptyMap(lastAllTime)) {
                                 Long tmp = lastAllTime.get(id);
-                                if (tmp != null) {
+                                if (AssertUtil.isNotNull(tmp)) {
                                     lastTime = tmp;
                                 }
                             }
