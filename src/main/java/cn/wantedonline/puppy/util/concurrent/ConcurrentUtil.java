@@ -219,12 +219,12 @@ public class ConcurrentUtil {
         Thread.currentThread().setPriority(Thread.NORM_PRIORITY);
     }
 
-    private static String getExecutorName(ExecutorService e) {
+    public static String getExecutorName(ExecutorService e) {
         NamedThreadFactory tf = getNamedExecutorThreadFactory(e);
         return tf == null ? e.getClass().getSimpleName() : tf.getNamePrefix();
     }
 
-    private static NamedThreadFactory getNamedExecutorThreadFactory(ExecutorService e) {
+    public static NamedThreadFactory getNamedExecutorThreadFactory(ExecutorService e) {
         if (e instanceof ThreadPoolExecutor) {
             ThreadPoolExecutor executor = (ThreadPoolExecutor) e;
             ThreadFactory tf = executor.getThreadFactory();

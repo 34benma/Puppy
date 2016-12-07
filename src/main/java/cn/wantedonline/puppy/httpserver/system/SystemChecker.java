@@ -16,6 +16,7 @@
 
 package cn.wantedonline.puppy.httpserver.system;
 
+import java.util.Iterator;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -24,6 +25,8 @@ import cn.wantedonline.puppy.spring.annotation.AfterBootstrap;
 import cn.wantedonline.puppy.spring.annotation.Config;
 import cn.wantedonline.puppy.util.Log;
 import cn.wantedonline.puppy.util.concurrent.ConcurrentUtil;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.util.concurrent.EventExecutor;
 import org.slf4j.Logger;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,15 +101,16 @@ public class SystemChecker {
 
     public void initDenialOfServiceMonitor() {
         if (dosMonitorCheckSec > 0) {
-            log.info("DenialOfServiceMonitor ON, interval:{}sec, pipelineSize:{}", dosMonitorCheckSec, config.getWorkerEventLoopGroup().executorCount());
+            log.info("DenialOfServiceMonitor ON, interval:{}sec, Worker EventLoop Size:{}", dosMonitorCheckSec, config.getWorkerEventLoopGroup().executorCount());
             ConcurrentUtil.getWatchdog().scheduleWithFixedDelay(new Runnable() {
 
                 /**
                  * check denialOfServiceAlmost
                  */
-                private boolean check2(ThreadPoolExecutor executor) {
+                private boolean check2(NioEventLoopGroup workerEventLoop) {
                     int _threadPoolQueueCountLimit = threadPoolQueueCountLimit - 500;// 几乎要拒绝服务的等待队列阀值
-
+                    //TODO:如何实现DOS防范
+                    /*
                     int activeCount = executor.getActiveCount();
                     int queueCount = executor.getQueue().size(); // 等待队列的大小
                     int largestPoolSize = executor.getLargestPoolSize();
@@ -120,13 +124,15 @@ public class SystemChecker {
                             return true;
                         }
                     }
+                    */
                     return false;
                 }
 
                 /**
                  * check denialOfService
                  */
-                private boolean check(ThreadPoolExecutor executor) {
+                private boolean check(NioEventLoopGroup workerEventLoop) {
+                    /*
                     int activeCount = executor.getActiveCount();
                     int queueCount = executor.getQueue().size(); // 等待队列的大小
                     int largestPoolSize = executor.getLargestPoolSize();
@@ -147,6 +153,7 @@ public class SystemChecker {
                             return true;
                         }
                     }
+                    */
                     return false;
                 }
 

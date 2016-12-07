@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import cn.wantedonline.puppy.util.AssertUtil;
 import cn.wantedonline.puppy.util.HumanReadableUtil;
 import cn.wantedonline.puppy.util.Log;
+import cn.wantedonline.puppy.util.StringHelper;
 import cn.wantedonline.puppy.util.concurrent.ConcurrentUtil;
 import org.slf4j.Logger;
 import org.slf4j.MDC;
@@ -277,7 +278,7 @@ public class SystemMonitor {
      * 线程池监控，建议每5秒钟监控一次（因为每时每刻的queue的数量都可能在大幅度变化）
      */
     public static boolean initThreadPoolMonitor(int interval, final int queueThreshold, final ExecutorService... executorServices) {
-        if (interval <= 0 || queueThreshold <= 0 || EmptyChecker.isEmpty(executorServices)) {
+        if (interval <= 0 || queueThreshold <= 0 || AssertUtil.isEmptyArray(executorServices)) {
             return false;
         }
         log.info("ThreadPoolMonitor       ON,interval:{}sec,queueThreshold:{},checkExecutors:{}", new Object[] {
