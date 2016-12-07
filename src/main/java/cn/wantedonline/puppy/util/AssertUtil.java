@@ -39,7 +39,7 @@ public class AssertUtil {
     }
 
     public static boolean isNotEmptyCollection(Collection<?> collec) {
-        return collec != null && collec.size() > 0;
+        return !isEmptyCollection(collec);
     }
 
     public static boolean isEmptyCollection(Collection<?> collec) {
@@ -47,7 +47,7 @@ public class AssertUtil {
     }
 
     public static boolean isNotEmptyMap(Map<?, ?> map) {
-        return null != map || map.size() > 0;
+        return !isEmptyMap(map);
     }
 
     public static boolean isEmptyMap(Map<?, ?> map) {

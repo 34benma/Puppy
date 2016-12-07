@@ -16,7 +16,6 @@
 
 package cn.wantedonline.puppy.httpserver.system;
 
-import java.util.Iterator;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -26,7 +25,6 @@ import cn.wantedonline.puppy.spring.annotation.Config;
 import cn.wantedonline.puppy.util.Log;
 import cn.wantedonline.puppy.util.concurrent.ConcurrentUtil;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.util.concurrent.EventExecutor;
 import org.slf4j.Logger;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;

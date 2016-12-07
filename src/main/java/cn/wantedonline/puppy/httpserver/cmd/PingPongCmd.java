@@ -24,6 +24,7 @@ import cn.wantedonline.puppy.httpserver.common.BaseCmd;
 import cn.wantedonline.puppy.httpserver.component.HttpRequest;
 import cn.wantedonline.puppy.httpserver.component.HttpResponse;
 import cn.wantedonline.puppy.httpserver.stat.NioWorkerStat;
+import cn.wantedonline.puppy.httpserver.system.SystemInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -48,6 +49,6 @@ public class PingPongCmd implements BaseCmd {
     @CmdAuthor("wangcheng")
     public Object pingMyRequest(HttpRequest request, HttpResponse response) {
 
-        return nioWorkerStat.tickNioWorkerStatSnapshot();
+        return SystemInfo.getSytemInfo();
     }
 }
