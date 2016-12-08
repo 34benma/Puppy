@@ -168,6 +168,15 @@ public class HttpRequest extends DefaultFullHttpRequest {
         return getQueryStringDecoder().path();
     }
 
+    public String getQueryString() {
+        String uri = getUri();
+        int qMarkIndex = uri.indexOf("?");
+        if (qMarkIndex > 0) {
+            return uri.substring(qMarkIndex);
+        }
+        return "";
+    }
+
     public QueryStringDecoder getQueryStringDecoder() {
         if (AssertUtil.isNull(queryStringDecoder)) {
             queryStringDecoder = new QueryStringDecoder(getUri(), charset4QueryStringDecoder);

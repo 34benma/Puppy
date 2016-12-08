@@ -15,73 +15,108 @@
  */
 package cn.wantedonline.puppy.httpserver.component;
 
-import java.io.Serializable;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import ch.qos.logback.access.AccessConstants;
+import ch.qos.logback.access.pattern.AccessConverter;
+import ch.qos.logback.access.servlet.Util;
 import ch.qos.logback.access.spi.IAccessEvent;
 import ch.qos.logback.access.spi.ServerAdapter;
-import ch.qos.logback.access.PatternLayout;
-import ch.qos.logback.access.pattern.AccessConverter;
-import cn.wantedonline.puppy.util.CharsetTools;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpVersion;
-import io.netty.handler.codec.http.cookie.Cookie;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.Serializable;
+import java.util.*;
 
 // Contributors:  Joern Huxhorn (see also bug #110)
 
 /**
- * <pre>
- * logback-0.9.24 -> logback-0.9.28 本类没有变化
- *  
- * 
- * The Access module's internal representation of logging events. When the logging component instance is called in the container to log then a
- * <code>AccessEvent</code> instance is created. This instance is passed around to the different logback components.
- * 
+ * The Access module's internal representation of logging events. When the
+ * logging component instance is called in the container to log then a
+ * <code>AccessEvent</code> instance is created. This instance is passed
+ * around to the different logback components.
+ *
  * @author Ceki G&uuml;lc&uuml;
  * @author S&eacute;bastien Pennec
  */
 public class AccessEvent implements Serializable, IAccessEvent {
 
-    private static final long serialVersionUID = -5502700134912346943L;
-    // http://www.apache-korea.org/cactus/api/framework-13/javax/servlet/ServletRequest.html#getServerName()
-    public final static String[] NA_STRING_ARRAY = new String[] {
-        IAccessEvent.NA
-    };
-    public final static String EMPTY = "";
+    private static final long serialVersionUID = 866718993618836343L;
+
+    private static final String EMPTY = "";
 
     private transient final HttpRequest httpRequest;
     private transient final HttpResponse httpResponse;
 
-    public static void crackTest() {
-    }
-
-    static {
-        PatternLayout.defaultConverterMap.put("remotePort", RemotePortConverter.class.getName());
-        PatternLayout.defaultConverterMap.put("responseContentSimple", SimplifyResponseConverter.class.getName());
-    }
-
+    String queryString;
+    String requestURI;
+    String requestURL;
+    String remoteHost;
+    String remoteUser;
+    String remoteAddr;
+    String threadName;
     String protocol;
     String method;
-    String requestURL;
+    String serverName;
     String requestContent;
     String responseContent;
+    String sessionID;
+    long elapsedTime;
+
+    Map<String, String> requestHeaderMap;
+    Map<String, String[]> requestParameterMap;
+    Map<String, String> responseHeaderMap;
+    Map<String, Object> attributeMap;
+
+    long contentLength = SENTINEL;
+    int statusCode = SENTINEL;
+    int localPort = SENTINEL;
+
+    transient ServerAdapter serverAdapter;
 
     /**
-     * The number of milliseconds elapsed from 1/1/1970 until logging event was created.
+     * The number of milliseconds elapsed from 1/1/1970 until logging event was
+     * created.
      */
     private long timeStamp = 0;
 
-    public AccessEvent(HttpRequest httpRequest, HttpResponse httpResponse) {
+    public AccessEvent(HttpRequest httpRequest, HttpResponse httpResponse, ServerAdapter adapter) {
         this.httpRequest = httpRequest;
         this.httpResponse = httpResponse;
-        this.timeStamp = httpRequest.getCreateTime();
+        this.timeStamp = System.currentTimeMillis();
+        this.serverAdapter = adapter;
+        this.elapsedTime = calculateElapsedTime();
+    }
+
+    /**
+     * <strong>总是返回null</strong>
+     * Returns the underlying HttpServletRequest. After serialization the returned
+     * value will be null.
+     *
+     * @return
+     */
+    @Override
+    public HttpServletRequest getRequest() {
+        return null;
+    }
+
+    public HttpRequest getMyRequest() {
+        return httpRequest;
+    }
+
+    /**
+     * <strong>总是返回null</strong>
+     * Returns the underlying HttpServletResponse. After serialization the returned
+     * value will be null.
+     *
+     * @return
+     */
+    @Override
+    public HttpServletResponse getResponse() {
+        return null;
+    }
+
+    public HttpResponse getMyResponse() {
+        return httpResponse;
     }
 
     @Override
@@ -92,16 +127,51 @@ public class AccessEvent implements Serializable, IAccessEvent {
     public void setTimeStamp(long timeStamp) {
         if (this.timeStamp != 0) {
             throw new IllegalStateException("timeStamp has been already set for this event.");
+        } else {
+            this.timeStamp = timeStamp;
         }
-        this.timeStamp = timeStamp;
     }
 
     /**
-     * 取得的uri是不带?后面的参数的
+     * @param threadName The threadName to set.
      */
+    public void setThreadName(String threadName) {
+        this.threadName = threadName;
+    }
+
+    @Override
+    public String getThreadName() {
+        return threadName == null ? NA : threadName;
+    }
+
     @Override
     public String getRequestURI() {
-        return httpRequest.getPath();
+        if (requestURI == null) {
+            if (httpRequest != null) {
+                requestURI = httpRequest.getUri();
+            } else {
+                requestURI = NA;
+            }
+        }
+        return requestURI;
+    }
+
+    @Override
+    public String getQueryString() {
+        if (queryString == null) {
+            if (httpRequest != null) {
+                StringBuilder buf = new StringBuilder();
+                final String qStr = httpRequest.getQueryString();
+                if (qStr != null) {
+                    buf.append(AccessConverter.QUESTION_CHAR);
+                    buf.append(qStr);
+                }
+                queryString = buf.toString();
+            } else {
+                queryString = NA;
+            }
+        }
+        return queryString;
     }
 
     /**
@@ -110,52 +180,55 @@ public class AccessEvent implements Serializable, IAccessEvent {
     @Override
     public String getRequestURL() {
         if (requestURL == null) {
-            StringBuilder buf = new StringBuilder();
-            buf.append(httpRequest.getMethod());
-            buf.append(AccessConverter.SPACE_CHAR);
-            buf.append(httpRequest.getUri());
-            buf.append(AccessConverter.SPACE_CHAR);
-            buf.append(httpRequest.getProtocolVersion());
-            requestURL = buf.toString();
+            if (httpRequest != null) {
+                StringBuilder buf = new StringBuilder();
+                buf.append(httpRequest.getMethod());
+                buf.append(AccessConverter.SPACE_CHAR);
+                buf.append(httpRequest.getRequestURI());
+                buf.append(getQueryString());
+                buf.append(AccessConverter.SPACE_CHAR);
+                buf.append(httpRequest.getProtocol());
+                requestURL = buf.toString();
+            } else {
+                requestURL = NA;
+            }
         }
         return requestURL;
     }
 
     @Override
     public String getRemoteHost() {
-        return httpRequest.getRemoteHost();
+        if (remoteHost == null) {
+            if (httpRequest != null) {
+                // the underlying implementation of HttpServletRequest will
+                // determine if remote lookup will be performed
+                remoteHost = httpRequest.getRemoteHost();
+            } else {
+                remoteHost = NA;
+            }
+        }
+        return remoteHost;
     }
 
-    /**
-     * <pre>
-     * Returns the login of the user making this request, if the user has been authenticated,
-     * or null if the user has not been authenticated.
-     * Whether the user name is sent with each subsequent request depends on the browser and type of authentication.
-     * Same as the value of the CGI variable REMOTE_USER.
-     * 
-     * 此方法只适用于 servlet带session情况,因此忽略!?
-     * </pre>
-     * 
-     * @return
-     */
     @Override
     public String getRemoteUser() {
-        return IAccessEvent.NA;
+        if (remoteUser == null) {
+            if (httpRequest != null) {
+                remoteUser = httpRequest.getRemoteUser();
+            } else {
+                remoteUser = NA;
+            }
+        }
+        return remoteUser;
     }
 
     @Override
     public String getProtocol() {
         if (protocol == null) {
-            HttpVersion v = httpRequest.getProtocolVersion();
-            if (v != null) {
-                String t = v.text();
-                if (t == null || t.isEmpty()) {
-                    protocol = IAccessEvent.NA;
-                } else {
-                    protocol = t;
-                }
+            if (httpRequest != null) {
+                protocol = httpRequest.getProtocol();
             } else {
-                protocol = IAccessEvent.NA;
+                protocol = NA;
             }
         }
         return protocol;
@@ -164,220 +237,369 @@ public class AccessEvent implements Serializable, IAccessEvent {
     @Override
     public String getMethod() {
         if (method == null) {
-            HttpMethod m = httpRequest.getMethod();
-            if (m == null) {
-                method = IAccessEvent.NA;
+            if (httpRequest != null) {
+                method = httpRequest.getMethod();
             } else {
-                method = m.toString();
+                method = NA;
             }
         }
         return method;
     }
 
-    /**
-     * <pre>
-     * Returns the host name of the server that received the request.
-     * For HTTP servlets, same as the value of the CGI variable SERVER_NAME.
-     * 
-     * 没什么意义,先不实现
-     * </pre>
-     * 
-     * @return
-     */
+    @Override
+    public String getSessionID() {
+        if (sessionID == null) {
+            if (httpRequest != null) {
+                final HttpSession session = httpRequest.getSession();
+                if (session != null) {
+                    sessionID = session.getId();
+                }
+            } else {
+                sessionID = NA;
+            }
+        }
+        return sessionID;
+    }
+
     @Override
     public String getServerName() {
-        return IAccessEvent.NA;
+        if (serverName == null) {
+            if (httpRequest != null) {
+                serverName = httpRequest.getServerName();
+            } else {
+                serverName = NA;
+            }
+        }
+        return serverName;
     }
 
     @Override
     public String getRemoteAddr() {
-        String r = httpRequest.getPrimitiveRemoteIp();
-        if (r.isEmpty()) {
-            return IAccessEvent.NA;
+        if (remoteAddr == null) {
+            if (httpRequest != null) {
+                remoteAddr = httpRequest.getRemoteAddr();
+            } else {
+                remoteAddr = NA;
+            }
         }
-        return r;
+        return remoteAddr;
     }
 
     @Override
     public String getRequestHeader(String key) {
-        // key = key.toLowerCase();
-        String result = httpRequest.getHeader(key);
+        String result = null;
+        key = key.toLowerCase();
+        if (requestHeaderMap == null) {
+            if (httpRequest != null) {
+                buildRequestHeaderMap();
+                result = requestHeaderMap.get(key);
+            }
+        } else {
+            result = requestHeaderMap.get(key);
+        }
+
         if (result != null) {
             return result;
+        } else {
+            return NA;
         }
-        return IAccessEvent.NA;
     }
 
-    /**
-     * DBAppender跟FullRequestConverter会用到
-     */
     @Override
     public Enumeration<String> getRequestHeaderNames() {
-        // return new Vector<String>(httpRequest.getHeaderNames()).elements();
-        throw new UnsupportedOperationException("getRequestHeaderNames");
+        // post-serialization
+        if (httpRequest == null) {
+            Vector<String> list = new Vector<String>(getRequestHeaderMap().keySet());
+            return list.elements();
+        }
+        return httpRequest.getHeaderNames();
     }
 
-    /**
-     * RequestHeaderConverter会用到
-     */
     @Override
     public Map<String, String> getRequestHeaderMap() {
-        throw new UnsupportedOperationException("getRequestHeaderMap");
+        if (requestHeaderMap == null) {
+            buildRequestHeaderMap();
+        }
+        return requestHeaderMap;
     }
 
-    /**
-     * Attributes are not serialized
-     * 
-     * @param key
-     */
+    public void buildRequestHeaderMap() {
+        // according to RFC 2616 header names are case insensitive
+        // latest versions of Tomcat return header names in lower-case
+        requestHeaderMap = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
+        Enumeration<String> e = httpRequest.getHeaderNames();
+        if (e == null) {
+            return;
+        }
+        while (e.hasMoreElements()) {
+            String key = e.nextElement();
+            requestHeaderMap.put(key, httpRequest.getHeader(key));
+        }
+    }
+
+    public void buildRequestParameterMap() {
+        requestParameterMap = new HashMap<String, String[]>();
+        Enumeration<String> e = httpRequest.getParameterNames();
+        if (e == null) {
+            return;
+        }
+        while (e.hasMoreElements()) {
+            String key = e.nextElement();
+            requestParameterMap.put(key, httpRequest.getParameterValues(key));
+        }
+    }
+
+    @Override
+    public Map<String, String[]> getRequestParameterMap() {
+        if (requestParameterMap == null) {
+            buildRequestParameterMap();
+        }
+        return requestParameterMap;
+    }
+
     @Override
     public String getAttribute(String key) {
-        throw new UnsupportedOperationException("getAttribute");
+        Object value = null;
+        if (attributeMap != null) {
+            // Event was prepared for deferred processing so we have a copy of attribute map and must use that copy
+            value = attributeMap.get(key);
+        } else if (httpRequest != null) {
+            // We have original request so take attribute from it
+            value = httpRequest.getAttribute(key);
+        }
+
+        return value != null ? value.toString() : NA;
     }
 
-    /**
-     * RequestParameterConverter会用到
-     */
+    private void copyAttributeMap() {
+
+        if (httpRequest == null) {
+            return;
+        }
+
+        attributeMap = new HashMap<String, Object>();
+
+        Enumeration<String> names = httpRequest.getAttributeNames();
+        while (names.hasMoreElements()) {
+            String name = names.nextElement();
+
+            Object value = httpRequest.getAttribute(name);
+            if (shouldCopyAttribute(name, value)) {
+                attributeMap.put(name, value);
+            }
+        }
+    }
+
+    private boolean shouldCopyAttribute(String name, Object value) {
+        if (AccessConstants.LB_INPUT_BUFFER.equals(name) || AccessConstants.LB_OUTPUT_BUFFER.equals(name)) {
+            // Do not copy attributes used by logback internally - these are available via other getters anyway
+            return false;
+        } else if (value == null) {
+            // No reasons to copy nulls - Map.get() will return null for missing keys and the list of attribute
+            // names is not available through IAccessEvent
+            return false;
+        } else {
+            // Only copy what is serializable
+            return value instanceof Serializable;
+        }
+    }
+
     @Override
     public String[] getRequestParameter(String key) {
-        throw new UnsupportedOperationException("getRequestParameter");
+        if (httpRequest != null) {
+            String[] value = httpRequest.getParameterValues(key);
+            if (value == null) {
+                return new String[] { NA };
+            } else {
+                return value;
+            }
+        } else {
+            return new String[] { NA };
+        }
     }
 
     @Override
     public String getCookie(String key) {
-        Cookie c = httpRequest.getCookie(key);
-        if (c != null) {
-            return c.value();
+
+        if (httpRequest != null) {
+            javax.servlet.http.Cookie[] cookieArray = httpRequest.getCookies();
+            if (cookieArray == null) {
+                return NA;
+            }
+
+            for (javax.servlet.http.Cookie cookie : cookieArray) {
+                if (key.equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
         }
-        return IAccessEvent.NA;
+        return NA;
     }
 
     @Override
     public long getContentLength() {
-        return httpResponse.getContentLength();
-    }
-
-    @Override
-    public int getStatusCode() {
-        HttpResponseStatus status = httpResponse.getStatus();
-        if (status != null) {
-            return status.code();
+        if (contentLength == SENTINEL) {
+            if (httpResponse != null) {
+                contentLength = serverAdapter.getContentLength();
+                return contentLength;
+            }
         }
-        return SENTINEL;
+        return contentLength;
     }
 
-    @Override
+    public int getStatusCode() {
+        if (statusCode == SENTINEL) {
+            if (httpResponse != null) {
+                statusCode = serverAdapter.getStatusCode();
+            }
+        }
+        return statusCode;
+    }
+
+    public long getElapsedSeconds() {
+        return elapsedTime < 0 ? elapsedTime : elapsedTime / 1000;
+    }
+
+    public long getElapsedTime() {
+        return elapsedTime;
+    }
+
+    private long calculateElapsedTime() {
+        if (serverAdapter.getRequestTimestamp() < 0) {
+            return -1;
+        }
+        return getTimeStamp() - serverAdapter.getRequestTimestamp();
+    }
+
     public String getRequestContent() {
         if (requestContent != null) {
             return requestContent;
         }
-        if (HttpMethod.POST.equals(httpRequest.getMethod()) && "application/x-www-form-urlencoded".equals(httpRequest.getHeader(HttpHeaders.Names.CONTENT_TYPE))) {
-            return new String(httpRequest.content().toString(CharsetTools.UTF_8));// TODO:如果处理charset
-            // return httpRequest.getPostContentDecoder().getPostContent();
-        }
-        StringBuilder tmp = new StringBuilder();
-        Map<String, List<String>> params = httpRequest.getParameters();
-        for (Entry<String, List<String>> p : params.entrySet()) {
-            String key = p.getKey();
-            List<String> vals = p.getValue();
-            for (String val : vals) {
-                tmp.append("&").append(key).append('=').append(val);
+
+        if (Util.isFormUrlEncoded(httpRequest)) {
+            StringBuilder buf = new StringBuilder();
+
+            Enumeration<String> pramEnumeration = httpRequest.getParameterNames();
+
+            // example: id=1234&user=cgu
+            // number=1233&x=1
+            int count = 0;
+            try {
+                while (pramEnumeration.hasMoreElements()) {
+
+                    String key = pramEnumeration.nextElement();
+                    if (count++ != 0) {
+                        buf.append("&");
+                    }
+                    buf.append(key);
+                    buf.append("=");
+                    String val = httpRequest.getParameter(key);
+                    if (val != null) {
+                        buf.append(val);
+                    } else {
+                        buf.append("");
+                    }
+                }
+            } catch (Exception e) {
+                // FIXME Why is try/catch required?
+                e.printStackTrace();
+            }
+            requestContent = buf.toString();
+        } else {
+            // retrieve the byte array placed by TeeFilter
+            byte[] inputBuffer = (byte[]) httpRequest.getAttribute(AccessConstants.LB_INPUT_BUFFER);
+
+            if (inputBuffer != null) {
+                requestContent = new String(inputBuffer);
+            }
+
+            if (requestContent == null || requestContent.length() == 0) {
+                requestContent = EMPTY;
             }
         }
-        if (tmp.length() > 0) {
-            requestContent = tmp.substring(1);
-        } else {
-            requestContent = "";
-        }
+
         return requestContent;
     }
 
-    @Override
     public String getResponseContent() {
         if (responseContent != null) {
             return responseContent;
         }
-        if (null != httpResponse.getAccessLogContent()) { // 有设置内容，就使用设置的内容，否则就按规矩办
-            responseContent = httpResponse.getAccessLogContent();
-        } else if (httpResponse.isBinaryContent()) {
-            responseContent = "[BINARY CONTENT]";
-        } else if (getStatusCode() == HttpResponseStatus.FOUND.code()) { // 如果是通过redirect跳转的，此处内容就是跳转后的URL
-            responseContent = "[REDIRECT] " + httpResponse.getHeader(HttpHeaders.Names.LOCATION);
+
+        if (Util.isImageResponse(httpResponse)) {
+            responseContent = "[IMAGE CONTENTS SUPPRESSED]";
         } else {
-            responseContent = httpResponse.getContentString();
+
+            // retreive the byte array previously placed by TeeFilter
+            byte[] outputBuffer = (byte[]) httpRequest.getAttribute(AccessConstants.LB_OUTPUT_BUFFER);
+
+            if (outputBuffer != null) {
+                responseContent = new String(outputBuffer);
+            }
+            if (responseContent == null || responseContent.length() == 0) {
+                responseContent = EMPTY;
+            }
         }
+
         return responseContent;
     }
 
-    @Override
     public int getLocalPort() {
-        return httpRequest.getLocalPort();
-    }
+        if (localPort == SENTINEL) {
+            if (httpRequest != null) {
+                localPort = httpRequest.getLocalPort();
+            }
 
-    public int getRemotePort() {
-        return httpRequest.getRemotePort();
-    }
-
-    @Override
-    public String getResponseHeader(String key) {
-        String r = httpResponse.getHeader(key);
-        if (r == null || r.isEmpty()) {
-            return IAccessEvent.NA;
         }
-        return r;
+        return localPort;
     }
 
-    /**
-     * 用于FullResponseConverter
-     */
-    @Override
-    public List<String> getResponseHeaderNameList() {
-        throw new UnsupportedOperationException("getResponseHeaderNameList");
-    }
-
-    @Override
-    public void prepareForDeferredProcessing() {
-
-    }
-
-    // 以下两个是自己要用的
-    public HttpRequest getHttpRequest() {
-        return httpRequest;
-    }
-
-    public HttpResponse getHttpResponse() {
-        return httpResponse;
-    }
-
-    // 以下方法是 0.9.28变成1.0.0时，多出来的方法，不用先
-    // TODO:后续可以再整理，如让httpRequest跟servlet规范对接
-    @Override
-    public Map<String, String[]> getRequestParameterMap() {
-        throw new UnsupportedOperationException("getRequestParameterMap");
-    }
-
-    @Override
     public ServerAdapter getServerAdapter() {
-        throw new UnsupportedOperationException("getServerAdapter");
+        return serverAdapter;
     }
 
-    @Override
+    public String getResponseHeader(String key) {
+        buildResponseHeaderMap();
+        return responseHeaderMap.get(key);
+    }
+
+    void buildResponseHeaderMap() {
+        if (responseHeaderMap == null) {
+            responseHeaderMap = serverAdapter.buildResponseHeaderMap();
+        }
+    }
+
     public Map<String, String> getResponseHeaderMap() {
-        throw new UnsupportedOperationException("getResponseHeaderMap");
+        buildResponseHeaderMap();
+        return responseHeaderMap;
     }
 
-    @Override
-    public HttpServletRequest getRequest() {
-        throw new UnsupportedOperationException("getRequest");
+    public List<String> getResponseHeaderNameList() {
+        buildResponseHeaderMap();
+        return new ArrayList<String>(responseHeaderMap.keySet());
     }
 
-    @Override
-    public HttpServletResponse getResponse() {
-        throw new UnsupportedOperationException("getResponse");
-    }
+    public void prepareForDeferredProcessing() {
+        getRequestHeaderMap();
+        getRequestParameterMap();
+        getResponseHeaderMap();
+        getLocalPort();
+        getMethod();
+        getProtocol();
+        getRemoteAddr();
+        getRemoteHost();
+        getRemoteUser();
+        getRequestURI();
+        getRequestURL();
+        getServerName();
+        getTimeStamp();
+        getElapsedTime();
 
-    // @CRACK 2014-2-13 这里是多出的方法，因为我们的日志里面没有使用这个，故直接返回0即可
-    public long getElapsedTime() {
-        return 0;
+        getStatusCode();
+        getContentLength();
+        getRequestContent();
+        getResponseContent();
+
+        copyAttributeMap();
     }
 }
