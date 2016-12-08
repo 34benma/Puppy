@@ -338,8 +338,9 @@ public class HttpRequest extends DefaultFullHttpRequest {
     public Map<String, List<String>> getParameters() {
         Map<String, List<String>> rtnMap = getParametersByGet();
         if (AssertUtil.isNotEmptyMap(rtnMap)) {
-            return getParametersbyPost();
+            rtnMap = getParametersbyPost();
         }
+        return rtnMap;
     }
 
     /**
