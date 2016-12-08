@@ -335,6 +335,13 @@ public class HttpRequest extends DefaultFullHttpRequest {
         return ValueUtil.getLong(getParameter(key), defaultValue);
     }
 
+    public Map<String, List<String>> getParameters() {
+        Map<String, List<String>> rtnMap = getParametersByGet();
+        if (AssertUtil.isNotEmptyMap(rtnMap)) {
+            return getParametersbyPost();
+        }
+    }
+
     /**
      * 和{@link getParameter(String key)}的区别在于本方法返回的是一个数组
      * @param key

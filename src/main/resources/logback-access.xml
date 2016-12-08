@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~  Copyright [2016-2026] wangcheng(wantedonline@outlook.com)
+  ~
+  ~   Licensed under the Apache License, Version 2.0 (the "License");
+  ~   you may not use this file except in compliance with the License.
+  ~   You may obtain a copy of the License at
+  ~
+  ~       http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~   Unless required by applicable law or agreed to in writing, software
+  ~   distributed under the License is distributed on an "AS IS" BASIS,
+  ~   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~   See the License for the specific language governing permissions and
+  ~   limitations under the License.
+  -->
+
+<configuration>
+
+    <appender name="STDOUT"
+              class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.access.PatternLayout">
+            <Pattern>%h %l %u %t \"%r\" %s %b</Pattern>
+        </layout>
+    </appender>
+
+    <appender-ref ref="STDOUT"/>
+
+    <!-- common,clf:%h %l %u %t \"%r\" %s %b -->
+    <!-- combined:%h %l %u %t \"%r\" %s %b \"%i{Referer}\" \"%i{User-Agent}\" -->
+
+    <!-- %9reqCookie{userid} -->
+    <property name="ACCESS_NORMAL_PATTERN"
+              value="%t{HH:mm:ss}|%9reqCookie{userid}|%20(%remoteIP:%remotePort)|%5b|%3s|%U|%reqParameter|%responseContentSimple{1,LH}"/>
+
+    <appender name="access_file" class="ch.qos.logback.core.rolling.AsyncRollingFileAppender">
+        <append>true</append>
+        <file>logs/access.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/access.%d{yyyy-MM-dd.HH}-%i.log.gz</fileNamePattern>
+            <maxHistory>4320</maxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder>
+            <Pattern>${ACCESS_NORMAL_PATTERN}</Pattern>
+        </encoder>
+    </appender>
+
+    <appender name="stderr" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.err</target>
+        <encoder>
+            <Pattern>${ACCESS_NORMAL_PATTERN}</Pattern>
+        </encoder>
+    </appender>
+
+    <appender-ref ref="access_file"/>
+
+</configuration>
