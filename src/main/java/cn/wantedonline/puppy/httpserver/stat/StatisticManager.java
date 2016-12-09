@@ -106,11 +106,11 @@ public class StatisticManager {
                 countStatSnapshotsData.addToHead(countStat.tickAndReset());
             }
 
-            if (AssertUtil.isNotNull(streamStat)) {
+            if (AssertUtil.isNotNull(streamStatSnapshotsData)) {
                 streamStatSnapshotsData.addToHead(streamStat.tickAndReset());
             }
 
-            if (AssertUtil.isNotNull(timeSpanStat)) {
+            if (AssertUtil.isNotNull(timeSpanSnapshotsData)) {
                 timeSpanSnapshotsData.addToHead(timeSpanStat.tickAndReset());
             }
 

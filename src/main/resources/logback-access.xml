@@ -16,45 +16,29 @@
   -->
 
 <configuration>
+    <!-- always a good activate OnConsoleStatusListener -->
+    <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener"/>
 
-    <appender name="STDOUT"
-              class="ch.qos.logback.core.ConsoleAppender">
-        <layout class="ch.qos.logback.access.PatternLayout">
-            <Pattern>%h %l %u %t \"%r\" %s %b</Pattern>
-        </layout>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%h %l %u %user %date "%r" %s %b</pattern>
+        </encoder>
     </appender>
 
     <appender-ref ref="STDOUT"/>
 
-    <!-- common,clf:%h %l %u %t \"%r\" %s %b -->
-    <!-- combined:%h %l %u %t \"%r\" %s %b \"%i{Referer}\" \"%i{User-Agent}\" -->
-
-    <!-- %9reqCookie{userid} -->
-    <property name="ACCESS_NORMAL_PATTERN"
-              value="%t{HH:mm:ss}|%9reqCookie{userid}|%20(%remoteIP:%remotePort)|%5b|%3s|%U|%reqParameter|%responseContentSimple{1,LH}"/>
-
-    <appender name="access_file" class="ch.qos.logback.core.rolling.AsyncRollingFileAppender">
-        <append>true</append>
-        <file>logs/access.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/access.%d{yyyy-MM-dd.HH}-%i.log.gz</fileNamePattern>
-            <maxHistory>4320</maxHistory>
-            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                <maxFileSize>100MB</maxFileSize>
-            </timeBasedFileNamingAndTriggeringPolicy>
+    <appender name="FILE"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>access.log"</File>
+        <rollingPolicy
+                class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>access.%d{yyyy-MM-dd}.log.zip</FileNamePattern>
         </rollingPolicy>
-        <encoder>
-            <Pattern>${ACCESS_NORMAL_PATTERN}</Pattern>
-        </encoder>
+
+        <layout class="ch.qos.logback.access.PatternLayout">
+            <Pattern>combined</Pattern>
+        </layout>
     </appender>
 
-    <appender name="stderr" class="ch.qos.logback.core.ConsoleAppender">
-        <target>System.err</target>
-        <encoder>
-            <Pattern>${ACCESS_NORMAL_PATTERN}</Pattern>
-        </encoder>
-    </appender>
-
-    <appender-ref ref="access_file"/>
-
+    <appender-ref ref="FILE"/>
 </configuration>

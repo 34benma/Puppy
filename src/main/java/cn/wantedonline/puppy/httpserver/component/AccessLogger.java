@@ -25,7 +25,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
 import ch.qos.logback.access.joran.JoranConfigurator;
-import ch.qos.logback.access.spi.AccessEvent;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.BasicStatusManager;
 import ch.qos.logback.core.Context;
@@ -111,14 +110,6 @@ public class AccessLogger implements Context, AppenderAttachable<AccessEvent>, F
 
     public void start() {
         try {
-            try {
-                AccessEvent.crackTest();
-            } catch (Throwable e) {
-                String info = "logback-access is no crack for nettyHttpServer,make sure logaccess_crack.jar's class path order is prior to ori_logaccess.jar";
-                getStatusManager().add(new ErrorStatus(info, this));
-                return;
-            }
-
             if (filename == null) {
                 try {
                     filename = getClass().getClassLoader().getResource(DEFAULT_CONFIG_FILE).getFile();

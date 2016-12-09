@@ -25,6 +25,7 @@ import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import io.netty.handler.codec.http.multipart.*;
 import org.slf4j.Logger;
 
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -132,12 +133,73 @@ public class HttpRequest extends DefaultFullHttpRequest {
         return headers().get(headName);
     }
 
+    /**
+     * 适配HttpServletRequest的方法
+     *
+     * First line of HTTP request	        Returned Value
+     * POST /some/path.html HTTP/1.1		/some/path.html
+     * GET http://foo.bar/a.html HTTP/1.0   /a.html
+     * HEAD /xyz?a=b HTTP/1.1		       /xyz
+     * @return
+     */
+    public String getRequestURI() {return getUri(); }
+
     public Map<String, List<String>> getHeaders() {
         Map<String, List<String>> headers = new HashMap<>(headers().names().size());
         for (String headerName : headers().names()) {
             headers.put(headerName, headers().getAll(headerName));
         }
         return headers;
+    }
+
+    public String getMethodStr() {
+        return getMethod().name();
+    }
+
+    /**
+     * Returns the host name of the server to which the request was sent.
+     * It is the value of the part before ":" in the Host header value,
+     * if any, or the resolved server name, or the server IP address.
+     * @return
+     */
+    public String getServerName() {
+        return headers().get(HttpHeaders.Names.HOST);
+    }
+
+    /**
+     * 适配HttpServletRequest
+     * 目前Puppy还没有实现Session的需求
+     * @return
+     */
+    public HttpSession getSession() {
+        return null;
+    }
+
+    /**
+     * 适配HttpServletRequest
+     * @return
+     */
+    public String getProtocol() {
+        return getProtocolVersion().text();
+    }
+
+    /**
+     * 适配HttpServletRequest
+     * @return
+     */
+    public String getRemoteUser() {return null; }
+
+    /**
+     * 适配HttpServletRequest
+     * @return
+     */
+    public Enumeration<String> getParameterNames() {
+        Vector list = new Vector<String>();
+        Set<String> parameterKeys = getParameters().keySet();
+        if (AssertUtil.isNotEmptyCollection(parameterKeys)) {
+            list.addAll(parameterKeys);
+        }
+        return list.elements();
     }
 
     public String getRemoteHost() {

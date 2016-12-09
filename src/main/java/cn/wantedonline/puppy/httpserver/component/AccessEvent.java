@@ -17,9 +17,9 @@ package cn.wantedonline.puppy.httpserver.component;
 
 import ch.qos.logback.access.AccessConstants;
 import ch.qos.logback.access.pattern.AccessConverter;
-import ch.qos.logback.access.servlet.Util;
 import ch.qos.logback.access.spi.IAccessEvent;
 import ch.qos.logback.access.spi.ServerAdapter;
+import cn.wantedonline.puppy.util.AssertUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -30,6 +30,11 @@ import java.util.*;
 // Contributors:  Joern Huxhorn (see also bug #110)
 
 /**
+ * <pre>
+ *     改造Logback提供的AccessEvent，适配Puppy的request和response
+ *     http://logback.qos.ch/access.html
+ * </pre>
+ *
  * The Access module's internal representation of logging events. When the
  * logging component instance is called in the container to log then a
  * <code>AccessEvent</code> instance is created. This instance is passed
@@ -71,24 +76,22 @@ public class AccessEvent implements Serializable, IAccessEvent {
     int statusCode = SENTINEL;
     int localPort = SENTINEL;
 
-    transient ServerAdapter serverAdapter;
-
     /**
      * The number of milliseconds elapsed from 1/1/1970 until logging event was
      * created.
      */
     private long timeStamp = 0;
 
-    public AccessEvent(HttpRequest httpRequest, HttpResponse httpResponse, ServerAdapter adapter) {
+    public AccessEvent(HttpRequest httpRequest, HttpResponse httpResponse) {
         this.httpRequest = httpRequest;
         this.httpResponse = httpResponse;
         this.timeStamp = System.currentTimeMillis();
-        this.serverAdapter = adapter;
-        this.elapsedTime = calculateElapsedTime();
+        this.elapsedTime = httpRequest.getCreateTime();
     }
 
     /**
-     * <strong>总是返回null</strong>
+     * <strong>因为Puppy的HttpRequest没有继承HttpServletRequest接口，因此总是返回null</strong>
+     * 可以调用getMyRequest获得Puppy的HttpRequest
      * Returns the underlying HttpServletRequest. After serialization the returned
      * value will be null.
      *
@@ -104,7 +107,8 @@ public class AccessEvent implements Serializable, IAccessEvent {
     }
 
     /**
-     * <strong>总是返回null</strong>
+     * <strong>因为Puppy的HttpResponse没有继承HttServletResponse接口,总是返回null</strong>
+     * 可以调用getMyResponse获得puppy的HttpResponse
      * Returns the underlying HttpServletResponse. After serialization the returned
      * value will be null.
      *
@@ -148,7 +152,7 @@ public class AccessEvent implements Serializable, IAccessEvent {
     public String getRequestURI() {
         if (requestURI == null) {
             if (httpRequest != null) {
-                requestURI = httpRequest.getUri();
+                requestURI = httpRequest.getRequestURI();
             } else {
                 requestURI = NA;
             }
@@ -210,6 +214,10 @@ public class AccessEvent implements Serializable, IAccessEvent {
         return remoteHost;
     }
 
+    /**
+     * puppy 目前总是返回null
+     * @return
+     */
     @Override
     public String getRemoteUser() {
         if (remoteUser == null) {
@@ -238,7 +246,7 @@ public class AccessEvent implements Serializable, IAccessEvent {
     public String getMethod() {
         if (method == null) {
             if (httpRequest != null) {
-                method = httpRequest.getMethod();
+                method = httpRequest.getMethodStr();
             } else {
                 method = NA;
             }
@@ -277,7 +285,7 @@ public class AccessEvent implements Serializable, IAccessEvent {
     public String getRemoteAddr() {
         if (remoteAddr == null) {
             if (httpRequest != null) {
-                remoteAddr = httpRequest.getRemoteAddr();
+                remoteAddr = httpRequest.getPrimitiveRemoteIp();
             } else {
                 remoteAddr = NA;
             }
@@ -307,12 +315,14 @@ public class AccessEvent implements Serializable, IAccessEvent {
 
     @Override
     public Enumeration<String> getRequestHeaderNames() {
+        Vector<String> list = new Vector<>();
         // post-serialization
         if (httpRequest == null) {
-            Vector<String> list = new Vector<String>(getRequestHeaderMap().keySet());
-            return list.elements();
+            list.addAll(getRequestHeaderMap().keySet());
+        } else {
+            list.addAll(httpRequest.headers().names());
         }
-        return httpRequest.getHeaderNames();
+        return list.elements();
     }
 
     @Override
@@ -327,7 +337,9 @@ public class AccessEvent implements Serializable, IAccessEvent {
         // according to RFC 2616 header names are case insensitive
         // latest versions of Tomcat return header names in lower-case
         requestHeaderMap = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
-        Enumeration<String> e = httpRequest.getHeaderNames();
+        Vector<String> list = new Vector<>();
+        list.addAll(httpRequest.headers().names());
+        Enumeration<String> e = list.elements();
         if (e == null) {
             return;
         }
@@ -365,7 +377,7 @@ public class AccessEvent implements Serializable, IAccessEvent {
             value = attributeMap.get(key);
         } else if (httpRequest != null) {
             // We have original request so take attribute from it
-            value = httpRequest.getAttribute(key);
+            value = httpRequest.getParameter(key);
         }
 
         return value != null ? value.toString() : NA;
@@ -379,11 +391,11 @@ public class AccessEvent implements Serializable, IAccessEvent {
 
         attributeMap = new HashMap<String, Object>();
 
-        Enumeration<String> names = httpRequest.getAttributeNames();
+        Enumeration<String> names = httpRequest.getParameterNames();
         while (names.hasMoreElements()) {
             String name = names.nextElement();
 
-            Object value = httpRequest.getAttribute(name);
+            Object value = httpRequest.getParameter(name);
             if (shouldCopyAttribute(name, value)) {
                 attributeMap.put(name, value);
             }
@@ -422,16 +434,7 @@ public class AccessEvent implements Serializable, IAccessEvent {
     public String getCookie(String key) {
 
         if (httpRequest != null) {
-            javax.servlet.http.Cookie[] cookieArray = httpRequest.getCookies();
-            if (cookieArray == null) {
-                return NA;
-            }
-
-            for (javax.servlet.http.Cookie cookie : cookieArray) {
-                if (key.equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
+            return httpRequest.getCookieValue(key);
         }
         return NA;
     }
@@ -440,7 +443,7 @@ public class AccessEvent implements Serializable, IAccessEvent {
     public long getContentLength() {
         if (contentLength == SENTINEL) {
             if (httpResponse != null) {
-                contentLength = serverAdapter.getContentLength();
+                contentLength = httpResponse.getContentLength();
                 return contentLength;
             }
         }
@@ -450,7 +453,7 @@ public class AccessEvent implements Serializable, IAccessEvent {
     public int getStatusCode() {
         if (statusCode == SENTINEL) {
             if (httpResponse != null) {
-                statusCode = serverAdapter.getStatusCode();
+                statusCode = httpResponse.getStatus().code();
             }
         }
         return statusCode;
@@ -464,60 +467,12 @@ public class AccessEvent implements Serializable, IAccessEvent {
         return elapsedTime;
     }
 
-    private long calculateElapsedTime() {
-        if (serverAdapter.getRequestTimestamp() < 0) {
-            return -1;
-        }
-        return getTimeStamp() - serverAdapter.getRequestTimestamp();
-    }
-
     public String getRequestContent() {
         if (requestContent != null) {
             return requestContent;
         }
-
-        if (Util.isFormUrlEncoded(httpRequest)) {
-            StringBuilder buf = new StringBuilder();
-
-            Enumeration<String> pramEnumeration = httpRequest.getParameterNames();
-
-            // example: id=1234&user=cgu
-            // number=1233&x=1
-            int count = 0;
-            try {
-                while (pramEnumeration.hasMoreElements()) {
-
-                    String key = pramEnumeration.nextElement();
-                    if (count++ != 0) {
-                        buf.append("&");
-                    }
-                    buf.append(key);
-                    buf.append("=");
-                    String val = httpRequest.getParameter(key);
-                    if (val != null) {
-                        buf.append(val);
-                    } else {
-                        buf.append("");
-                    }
-                }
-            } catch (Exception e) {
-                // FIXME Why is try/catch required?
-                e.printStackTrace();
-            }
-            requestContent = buf.toString();
-        } else {
-            // retrieve the byte array placed by TeeFilter
-            byte[] inputBuffer = (byte[]) httpRequest.getAttribute(AccessConstants.LB_INPUT_BUFFER);
-
-            if (inputBuffer != null) {
-                requestContent = new String(inputBuffer);
-            }
-
-            if (requestContent == null || requestContent.length() == 0) {
-                requestContent = EMPTY;
-            }
-        }
-
+        //TODO:目前不返回实体内容
+        requestContent = EMPTY;
         return requestContent;
     }
 
@@ -525,22 +480,8 @@ public class AccessEvent implements Serializable, IAccessEvent {
         if (responseContent != null) {
             return responseContent;
         }
-
-        if (Util.isImageResponse(httpResponse)) {
-            responseContent = "[IMAGE CONTENTS SUPPRESSED]";
-        } else {
-
-            // retreive the byte array previously placed by TeeFilter
-            byte[] outputBuffer = (byte[]) httpRequest.getAttribute(AccessConstants.LB_OUTPUT_BUFFER);
-
-            if (outputBuffer != null) {
-                responseContent = new String(outputBuffer);
-            }
-            if (responseContent == null || responseContent.length() == 0) {
-                responseContent = EMPTY;
-            }
-        }
-
+        //TODO:目前不返回实体内容
+        responseContent = EMPTY;
         return responseContent;
     }
 
@@ -554,8 +495,9 @@ public class AccessEvent implements Serializable, IAccessEvent {
         return localPort;
     }
 
+    @Override
     public ServerAdapter getServerAdapter() {
-        return serverAdapter;
+        return null;
     }
 
     public String getResponseHeader(String key) {
@@ -565,7 +507,14 @@ public class AccessEvent implements Serializable, IAccessEvent {
 
     void buildResponseHeaderMap() {
         if (responseHeaderMap == null) {
-            responseHeaderMap = serverAdapter.buildResponseHeaderMap();
+            Set<String> names = httpResponse.headers().names();
+            if (AssertUtil.isNotEmptyCollection(names)) {
+                Map<String, String> tmpMap = new HashMap<>(names.size());
+                for (String name : names) {
+                    tmpMap.put(name, httpResponse.headers().get(name));
+                }
+                responseHeaderMap = tmpMap;
+            }
         }
     }
 
