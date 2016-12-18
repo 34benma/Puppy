@@ -29,7 +29,7 @@
 
     <appender name="FILE"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <File>access.log"</File>
+        <File>access.log</File>
         <rollingPolicy
                 class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <FileNamePattern>access.%d{yyyy-MM-dd}.log.zip</FileNamePattern>
