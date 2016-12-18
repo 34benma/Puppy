@@ -23,6 +23,8 @@ import cn.wantedonline.puppy.httpserver.annotation.CmdReturn;
 import cn.wantedonline.puppy.httpserver.common.BaseCmd;
 import cn.wantedonline.puppy.httpserver.component.HttpRequest;
 import cn.wantedonline.puppy.httpserver.component.HttpResponse;
+import cn.wantedonline.puppy.httpserver.httptools.JsonUtil;
+import cn.wantedonline.puppy.httpserver.httptools.RtnConstants;
 import cn.wantedonline.puppy.httpserver.stat.NioWorkerStat;
 import cn.wantedonline.puppy.httpserver.system.SystemInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +50,6 @@ public class PingPongCmd implements BaseCmd {
     })
     @CmdAuthor("wangcheng")
     public Object pingMyRequest(HttpRequest request, HttpResponse response) throws Exception {
-        System.out.println(1/0);
-        return SystemInfo.getSytemInfo();
+        return JsonUtil.getRtnAndDataJsonObject(RtnConstants.INTERNAL_SERVER_ERROR,JsonUtil.buildMap("hello","wangcheng"));
     }
 }
