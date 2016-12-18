@@ -20,6 +20,8 @@
         <slf4j-api.version>1.7.4</slf4j-api.version>
         <javax.servlet-api.version>3.0.1</javax.servlet-api.version>
         <fastjson.version>1.2.21</fastjson.version>
+        <guava.version>19.0</guava.version>
+        <bonecp.version>0.8.0.RELEASE</bonecp.version>
     </properties>
 
     <dependencies>
@@ -144,6 +146,22 @@
             <artifactId>javax.servlet-api</artifactId>
             <version>${javax.servlet-api.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
+        <!--BoneCp依赖guava http://www.jolbox.com-->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.jolbox/bonecp -->
+        <dependency>
+            <groupId>com.jolbox</groupId>
+            <artifactId>bonecp</artifactId>
+            <version>${bonecp.version}</version>
+        </dependency>
+
+
     </dependencies>
 
     <build>
