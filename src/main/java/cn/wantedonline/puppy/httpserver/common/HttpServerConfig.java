@@ -17,6 +17,7 @@
 package cn.wantedonline.puppy.httpserver.common;
 
 import cn.wantedonline.puppy.httpserver.component.AbstractPageDispatcher;
+import cn.wantedonline.puppy.httpserver.component.AccessLogger;
 import cn.wantedonline.puppy.httpserver.component.HttpRequestDecoder;
 import cn.wantedonline.puppy.httpserver.component.HttpResponseEncoder;
 import cn.wantedonline.puppy.httpserver.stat.CountStat;
@@ -97,6 +98,12 @@ public final class HttpServerConfig {
     public TimeSpanStat timeSpanStat;
     //*******************V0.2.0 统计需求 End ***************************//
 
+    //*******************V0.4.0 日志告警需求 Start *********************//
+    @Config(resetable = true)
+    private boolean logaccessEnable = true;
+    private AccessLogger accessLogger = new AccessLogger();
+    //*******************V0.4.0 日志告警需求 End *********************//
+
     public static ContentType getRespInnerContentType() {
         return respInnerContentType;
     }
@@ -123,6 +130,24 @@ public final class HttpServerConfig {
 
     public String getCmdDefaultMethod() {
         return cmdDefaultMethod;
+    }
+
+    public boolean isLogaccessEnable() {
+        return logaccessEnable;
+    }
+
+    public void setLogaccessEnable(boolean logaccessEnable) {
+        this.logaccessEnable = logaccessEnable;
+        initAccessLogger();
+    }
+
+    @AfterConfig
+    private void initAccessLogger() {
+        accessLogger.setLogEanble(logaccessEnable);
+    }
+
+    public AccessLogger getAccessLogger() {
+        return accessLogger;
     }
 
     private class HttpServerHandler extends ChannelInitializer<SocketChannel> {

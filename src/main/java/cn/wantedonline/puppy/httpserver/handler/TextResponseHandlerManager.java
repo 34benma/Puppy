@@ -16,10 +16,12 @@
 
 package cn.wantedonline.puppy.httpserver.handler;
 
+import cn.wantedonline.puppy.httpserver.common.HttpServerConfig;
 import cn.wantedonline.puppy.httpserver.component.ContextAttachment;
 import cn.wantedonline.puppy.httpserver.component.HttpResponse;
 import cn.wantedonline.puppy.spring.annotation.AfterBootstrap;
 import cn.wantedonline.puppy.spring.annotation.AfterConfig;
+import com.sun.net.httpserver.HttpServer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +36,8 @@ public class TextResponseHandlerManager extends HandlerManager<TextResponseHandl
 
     @Autowired
     private TextResponseHandler textResponseHandler;
-
+    @Autowired
+    private HttpServerConfig config;
     /**
      * 因为放入了Spring中，所以必须有一个公有构造函数
      */
@@ -67,6 +70,8 @@ public class TextResponseHandlerManager extends HandlerManager<TextResponseHandl
         HttpResponse response = attach.getResponse();
         setContent(attach, cmdReturnObj);
         response.packagingCookies();
+        //记录访问日志
+        config.getAccessLogger().log(attach.getRequest(), attach.getResponse());
     }
 
 

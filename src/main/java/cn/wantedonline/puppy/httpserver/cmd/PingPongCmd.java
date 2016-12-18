@@ -47,8 +47,8 @@ public class PingPongCmd implements BaseCmd {
             ""
     })
     @CmdAuthor("wangcheng")
-    public Object pingMyRequest(HttpRequest request, HttpResponse response) {
-
+    public Object pingMyRequest(HttpRequest request, HttpResponse response) throws Exception {
+        System.out.println(1/0);
         return SystemInfo.getSytemInfo();
     }
 }

@@ -3,4 +3,5 @@ Puppy.iml
 /target/*
 *.stat
 .DS_Store
-
+*.log
+*.zip

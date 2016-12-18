@@ -14,9 +14,14 @@
   ~   See the License for the specific language governing permissions and
   ~   limitations under the License.
   -->
-
-<configuration scan="true" scanPeriod="3 seconds">
-
+<configuration scan="true" scanPeriod="90 seconds">
+    <property name="smtpHost" value="smtp.163.com" />
+    <property name="smtpPort" value="25" />
+    <property name="username" value="wangchengjack@163.com" />
+    <property name="password" value="xxx" />
+    <property name="email_to" value="wangchengjack@qq.com" />
+    <property name="send_email_from" value="Puppy服务器" />
+    <property name="email_subject" value="[Puppy Exception]: %logger{20} - %m" />
     <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener"/>
 
     <appender name="STDOUT"
@@ -45,9 +50,24 @@
         </layout>
     </appender>
 
+    <appender name="EMAIL" class="ch.qos.logback.classic.net.SMTPAppender">
+        <smtpHost>${smtpHost}</smtpHost>
+        <smtpPort>${smtpPort}</smtpPort>
+        <SSL>false</SSL>
+        <username>${username}</username>
+        <password>${password}</password>
+        <to>${email_to}</to>
+        <from>${send_email_from}</from>
+        <subject>${email_subject}</subject>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%date %-5level %logger{35} - %message%n</pattern>
+        </layout>
+    </appender>
+
     <root>
         <level value="DEBUG"/>
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE"/>
+        <appender-ref ref="EMAIL" />
     </root>
 </configuration>
