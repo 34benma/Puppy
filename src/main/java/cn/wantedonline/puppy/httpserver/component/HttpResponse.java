@@ -159,6 +159,8 @@ public class HttpResponse extends DefaultFullHttpResponse {
         return innerContentType;
     }
 
+    public void setInnerContentType(ContentType innerContentType) { this.innerContentType = innerContentType; }
+
     @Override
     public HttpResponseStatus getStatus() {
         return super.getStatus();

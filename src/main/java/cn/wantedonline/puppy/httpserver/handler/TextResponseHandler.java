@@ -16,6 +16,7 @@
 
 package cn.wantedonline.puppy.httpserver.handler;
 
+import cn.wantedonline.puppy.httpserver.common.ContentType;
 import cn.wantedonline.puppy.httpserver.component.ContextAttachment;
 import cn.wantedonline.puppy.httpserver.component.HttpResponse;
 import cn.wantedonline.puppy.spring.annotation.Config;
@@ -38,7 +39,14 @@ public class TextResponseHandler implements Handler {
 
     public String buildContentString(ContextAttachment attach, Object cmdReturnObj) {
         HttpResponse response = attach.getResponse();
-        response.setHeaderIfEmpty(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=" + response.getContentCharset());
+        ContentType type = response.getInnerContentType();
+        if (type.equals(ContentType.html)) {
+            response.setHeaderIfEmpty(HttpHeaders.Names.CONTENT_TYPE, "text/html; charset=" + response.getContentCharset());
+        } else if (type.equals(ContentType.xml)) {
+            response.setHeaderIfEmpty(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=" + response.getContentCharset());
+        } else {
+            response.setHeaderIfEmpty(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=" + response.getContentCharset());
+        }
         StringBuilder content = _buildContentString(attach, cmdReturnObj);
         return content.toString();
     }
