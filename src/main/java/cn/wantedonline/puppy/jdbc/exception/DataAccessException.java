@@ -17,8 +17,8 @@
 package cn.wantedonline.puppy.jdbc.exception;
 
 /**
- * @author ling
- * @date 2008.8.5
+ * @author thunder
+ * @since V0.6.0
  */
 public abstract class DataAccessException extends NestedRuntimeException {
 

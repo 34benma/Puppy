@@ -29,8 +29,8 @@ import java.util.Map;
  *  <LI>当字段为数值型时,如果值为-1,忽略此字段</LI>
  * </pre>
  * 
- * @author 曾东
- * @since 2009-3-10 上午10:34:52
+ * @author thunder
+ * @since V0.6.0
  */
 public interface JdbcOperations extends BasicJdbcOperations {
 

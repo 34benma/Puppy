@@ -17,8 +17,8 @@
 package cn.wantedonline.puppy.jdbc;
 
 /**
- * @author ZengDong
- * @since 2010-9-4 下午03:47:36
+ * @author thunder
+ * @since V0.6.0
  */
 public interface ITableName {
 
