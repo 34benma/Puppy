@@ -43,10 +43,14 @@ import java.util.Date;
  * @since V0.2.0 on 16/11/29.
  */
 @Service
-public class StatisticManager {
+public final class StatisticManager {
+    @Config
     private static final String COUNT_STAT_FILE_NAME = "COUNTSTAT.stat";
+    @Config
     private static final String STREAM_STAT_FILE_NAME = "STREAM.stat";
+    @Config
     private static final String TIME_SPAN_STAT_FILE_NAME = "TIMESPAN.stat";
+
     private Logger log = Log.getLogger(StatisticManager.class);
 
     @Config
@@ -155,7 +159,7 @@ public class StatisticManager {
     }
 
     private WrappedConcurrentCircularQueue readStatisticSnapshotsDataFromFile(String fileName, Charset charset) {
-        String filePath = getClass().getProtectionDomain().getCodeSource().getLocation().getPath() + fileName;
+        String filePath = fileName;
         File file = new File(filePath);
         try(BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))) {
             StringBuilder text = new StringBuilder();
@@ -167,7 +171,7 @@ public class StatisticManager {
                 return JSONObject.parseObject(text.toString(), WrappedConcurrentCircularQueue.class);
             }
         } catch (FileNotFoundException e) {
-            log.error("read statistic snapshots data error, not found file,if it is the first time read, you can ignore it. error info",e);
+            log.info("read statistic snapshots data error, not found file,if it is the first time read, you can ignore it. error info");
         } catch (IOException e) {
             log.error("read statistic snapshots data error, file is bad... error info", e);
         }
