@@ -1,2 +1,0 @@
-HttpRequest 需要适配HttpServletRequest
-比如HttpSession
