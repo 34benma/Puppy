@@ -45,7 +45,7 @@ public abstract class BasePageDispatcher extends AbstractPageDispatcher {
 
     }
 
-    public abstract void dispatch(ContextAttachment attachment);
+    public abstract void dispatch(ContextAttachment attachment) throws Exception;
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
@@ -109,7 +109,7 @@ public abstract class BasePageDispatcher extends AbstractPageDispatcher {
         }
     }
 
-    private void requestReceived(ChannelHandlerContext ctx, ContextAttachment attachment) {
+    private void requestReceived(ChannelHandlerContext ctx, ContextAttachment attachment) throws Exception {
         HttpResponse response = new HttpResponse(attachment);
         attachment.markWriteBegin();
         attachment.registerNewMessage(response);

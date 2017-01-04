@@ -16,14 +16,21 @@
 
 package cn.wantedonline.puppy.httpserver.handler;
 
+import cn.wantedonline.puppy.exception.ProcessFinishedError;
+import cn.wantedonline.puppy.exception.ProcessTimeoutError;
+import cn.wantedonline.puppy.exception.ResourceNotFoundError;
 import cn.wantedonline.puppy.httpserver.common.HttpServerConfig;
 import cn.wantedonline.puppy.httpserver.component.ContextAttachment;
 import cn.wantedonline.puppy.httpserver.component.HttpResponse;
 import cn.wantedonline.puppy.spring.annotation.AfterBootstrap;
 import cn.wantedonline.puppy.spring.annotation.AfterConfig;
+import cn.wantedonline.puppy.spring.annotation.Config;
+import cn.wantedonline.puppy.util.AssertUtil;
 import com.sun.net.httpserver.HttpServer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.lang.reflect.InvocationTargetException;
 
 /**
  *
@@ -72,6 +79,33 @@ public class TextResponseHandlerManager extends HandlerManager<TextResponseHandl
         response.packagingCookies();
         //记录访问日志
         config.getAccessLogger().log(attach.getRequest(), attach.getResponse());
+    }
+
+    public Object handleThrowable(ContextAttachment attach, Throwable e) throws Exception {
+        Object cmdReturnObj = null;
+        Throwable ex = e;
+        if (ex instanceof SecurityException || ex instanceof NoSuchMethodError) {
+            ex = ResourceNotFoundError.INSTANCE;
+        } else {
+            if (ex instanceof InvocationTargetException) {
+                ex = ((InvocationTargetException)ex).getTargetException();
+                if (ex instanceof ProcessFinishedError) {
+                    //TODO:异步处理
+                }
+            } else if (ex instanceof InterruptedException) {
+                ex = ProcessTimeoutError.INSTANCE;
+            }
+        }
+
+        attach.registerThrowable(ex);
+
+        for (TextResponseHandler th : getHandlerChain()) {
+            cmdReturnObj = th.handleThrowable(attach, ex);
+            if (AssertUtil.isNotNull(cmdReturnObj)) {
+                return cmdReturnObj;
+            }
+        }
+        return cmdReturnObj;
     }
 
 
