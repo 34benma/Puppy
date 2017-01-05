@@ -56,6 +56,7 @@ public class CmdPageDispatcher extends BasePageDispatcher {
             cmdReturnObj = _dispatch(attachment);
         } catch (Throwable ex) {
             //交给异常处理器处理
+
         } finally {
             handlerManager.writeResponse(attachment, cmdReturnObj);
         }
