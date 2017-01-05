@@ -30,6 +30,7 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.CookieEncoder;
+import io.netty.handler.codec.http.cookie.DefaultCookie;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -65,6 +66,10 @@ public class HttpResponse extends DefaultFullHttpResponse {
         this.attach = attach;
     }
 
+    /**
+     * 使用DefaultCookie
+     * @param cookie
+     */
     public void addCookie(Cookie cookie) {
         this.cookies.add(cookie);
     }

@@ -27,6 +27,7 @@ import cn.wantedonline.puppy.httpserver.httptools.JsonUtil;
 import cn.wantedonline.puppy.httpserver.httptools.RtnConstants;
 import cn.wantedonline.puppy.httpserver.stat.NioWorkerStat;
 import cn.wantedonline.puppy.httpserver.system.SystemInfo;
+import io.netty.handler.codec.http.cookie.DefaultCookie;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -47,6 +48,16 @@ public class PingPongCmd implements BaseCmd {
     })
     @CmdAuthor("wangcheng")
     public Object pingMyRequest(HttpRequest request, HttpResponse response) throws Exception {
+        response.addCookie(new DefaultCookie("sessionId","122334555"));
         return JsonUtil.getRtnAndDataJsonObject(RtnConstants.INTERNAL_SERVER_ERROR,JsonUtil.buildMap("hello","wangcheng"));
+    }
+
+    @Cmd("打印Cookie信息")
+    @CmdReturn({
+            ""
+    })
+    @CmdAuthor("wangcheng")
+    public Object printCookie(HttpRequest request, HttpResponse response) throws Exception {
+        return JsonUtil.getRtnAndDataJsonObject(RtnConstants.OK, request.getCookieValue("sessionId"));
     }
 }
