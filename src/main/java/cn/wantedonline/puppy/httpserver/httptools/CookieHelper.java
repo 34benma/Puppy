@@ -47,5 +47,12 @@ public final class CookieHelper {
     public static void addCookie(String key, String value, int maxAge, HttpResponse response) {
         Cookie cookie = new DefaultCookie(key, value);
         cookie.setDomain(domain);
+        cookie.setPath("/");
+        cookie.setMaxAge(maxAge);
+        response.addCookie(cookie);
+    }
+
+    public static void removeCookie(String key, String value, HttpResponse response) {
+        addCookie(key, value, 0, response);
     }
 }
