@@ -57,7 +57,7 @@ public class ContextAttachment implements ChannelFutureListener, Comparable<Cont
     private volatile boolean closeAfterOperationComplete = true;
 
     public void registerThrowable(Throwable ex) {
-        if (AssertUtil.isNotEmptyCollection(throwables)) {
+        if (AssertUtil.isEmptyCollection(throwables)) {
             throwables = new ArrayList<>(1);
         }
         throwables.add(ex);

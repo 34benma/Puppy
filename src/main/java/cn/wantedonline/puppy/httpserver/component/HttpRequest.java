@@ -18,6 +18,7 @@ package cn.wantedonline.puppy.httpserver.component;
 
 import cn.wantedonline.puppy.exception.IllegalParameterError;
 import cn.wantedonline.puppy.util.*;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.cookie.Cookie;
@@ -530,6 +531,74 @@ public class HttpRequest extends DefaultFullHttpRequest {
 
     public long getCookieValueLong(String cookieName, int defaultValue) {
         return ValueUtil.getLong(getCookieValue(cookieName), defaultValue);
+    }
+
+    public StringBuilder getDetailInfo() {
+        Map<String, List<String>> params = getParameters();
+        Map<String, List<String>> post_params = getParametersbyPost();
+        int keyMaxLen = "HTTP/1.1".length();
+        for (String name : headers().names()) {
+            keyMaxLen = Math.max(keyMaxLen, name.length());
+        }
+        for (String key : params.keySet()) {
+            keyMaxLen = Math.max(keyMaxLen, key.length());
+        }
+        for (String key : post_params.keySet()) {
+            keyMaxLen = Math.max(keyMaxLen, key.length());
+        }
+        String fmt = "%" + (keyMaxLen + 1) + "s  %s\n";
+
+        StringBuilder r = new StringBuilder("REQUEST:\n");
+        r.append(String.format(fmt, getMethod(), getUri()));
+        r.append(String.format(fmt, getProtocolVersion().text(), getRemoteAddress() + "->" + getLocalAddress()));
+        // StringHelper.append(r, getMethod(), " ", getUrl(), "\n", getProtocolVersion().getText(), " ", getRemoteAddress(), "->", getLocalAddress(), "\n");
+        if (!headers().names().isEmpty()) {
+            r.append("HEADER:\n");
+            for (String name : headers().names()) {
+                for (String value : headers().getAll(name)) {
+                    r.append(String.format(fmt, name, value));
+                }
+            }
+        }
+        String content = getContentString();
+        if (StringTools.isNotEmpty(content)) {
+            r.append("CONTENT:\n" + content + "\n");
+        }
+
+        if (!params.isEmpty()) {
+            r.append("PARAM:\n");
+            for (Map.Entry<String, List<String>> p : params.entrySet()) {
+                String key = p.getKey();
+                List<String> vals = p.getValue();
+                for (String val : vals) {
+                    r.append(String.format(fmt, key, val));
+                }
+            }
+        }
+        if (!post_params.isEmpty()) {
+            r.append("POST_PARAM:\n");
+            for (Map.Entry<String, List<String>> p : post_params.entrySet()) {
+                String key = p.getKey();
+                List<String> vals = p.getValue();
+                for (String val : vals) {
+                    r.append(String.format(fmt, key, val));
+                }
+            }
+        }
+        return r;
+    }
+
+    public String getContentString(Charset charset) {
+        ByteBuf content = content();
+        return new String(content.array(), charset);
+    }
+
+    public String getContentString() {
+        ByteBuf content = content();
+        if (content.hasArray()) {
+            return new String(content.array(), charset4ContentDecoder);
+        }
+        return "";
     }
 
 }

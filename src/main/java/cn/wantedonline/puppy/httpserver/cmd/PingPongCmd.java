@@ -41,9 +41,6 @@ import org.springframework.stereotype.Service;
 @CmdDescr("Ping-PongCmd,打印Http请求头信息")
 @Service
 public class PingPongCmd implements BaseCmd {
-    @Autowired
-    private NioWorkerStat nioWorkerStat;
-
     @Cmd("打印Http请求信息")
     @CmdReturn({
             ""

@@ -16,13 +16,23 @@
 
 package cn.wantedonline.puppy.httpserver.handler;
 
+import cn.wantedonline.puppy.exception.AbstractHttpServerError;
 import cn.wantedonline.puppy.httpserver.common.ContentType;
 import cn.wantedonline.puppy.httpserver.component.ContextAttachment;
+import cn.wantedonline.puppy.httpserver.component.HttpRequest;
 import cn.wantedonline.puppy.httpserver.component.HttpResponse;
 import cn.wantedonline.puppy.spring.annotation.Config;
 import cn.wantedonline.puppy.util.AssertUtil;
+import cn.wantedonline.puppy.util.Log;
+import cn.wantedonline.puppy.util.StringHelper;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
+
+import java.lang.management.ManagementFactory;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * <pre>
@@ -33,9 +43,13 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class TextResponseHandler implements Handler {
+    private static final Logger log = Log.getLogger();
 
     @Config
     private String responseReturnNull = "Response is null";
+
+    @Config(resetable = true, split = ",")
+    protected Set<String> logThrowableIgnoreList = Collections.emptySet();
 
     public String buildContentString(ContextAttachment attach, Object cmdReturnObj) {
         HttpResponse response = attach.getResponse();
@@ -52,13 +66,47 @@ public class TextResponseHandler implements Handler {
     }
 
     public Object handleThrowable(ContextAttachment attach, Throwable ex) throws Exception {
-        return null;
+        HttpRequest request = attach.getRequest();
+        HttpResponse response = attach.getResponse();
+
+        if (ex instanceof AbstractHttpServerError) {
+            HttpResponseStatus status = ((AbstractHttpServerError)ex).getStatus();
+            response.setStatus(status);
+            return ex.getMessage();
+        }
+
+        return StringHelper.printThrowableSimple(ex);
     }
 
     private StringBuilder _buildContentString(ContextAttachment attach, Object cmdReturnObj) {
         StringBuilder content = new StringBuilder();
         content.append(AssertUtil.isNull(cmdReturnObj) ? responseReturnNull : cmdReturnObj);
         return content;
+    }
+
+    public void logThrowable(final ContextAttachment attach, final HttpRequest request, final HttpResponse response, final Throwable ex) {
+        response.setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+
+        if (logThrowableIgnoreList.contains(ex.getClass().getName())) {
+            return;
+        }
+
+        logError(request.getPath(), "{}:{} |{}\n\n{}",
+                ex.getClass().getSimpleName(),
+                request.getPath(),
+                ManagementFactory.getRuntimeMXBean().getName(),
+                request.getDetailInfo(),
+                ex);
+    }
+
+    public static void logError(final String mailTitleInfo, final String info, final Object... args) {
+        Object objEx = args[args.length - 1];
+        String exInfo = "";
+        if (objEx instanceof Throwable) {
+            exInfo = ((Throwable) objEx).getClass().getSimpleName();
+        }
+        //TODO：决定是否要发送邮件
+        log.error(info, args);
     }
 
 
