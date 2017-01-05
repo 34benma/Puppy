@@ -16,6 +16,7 @@
 
 package cn.wantedonline.puppy.httpserver.component;
 
+import cn.wantedonline.puppy.exception.ResourceNotFoundError;
 import cn.wantedonline.puppy.httpserver.common.BaseCmd;
 import cn.wantedonline.puppy.httpserver.common.CmdMappers;
 import cn.wantedonline.puppy.httpserver.handler.TextResponseHandlerManager;
@@ -50,13 +51,13 @@ public class CmdPageDispatcher extends BasePageDispatcher {
     }
 
     @Override
-    public void dispatch(ContextAttachment attachment) {
+    public void dispatch(ContextAttachment attachment) throws Exception {
         Object cmdReturnObj = null;
         try {
             cmdReturnObj = _dispatch(attachment);
         } catch (Throwable ex) {
             //交给异常处理器处理
-
+            cmdReturnObj = handlerManager.handleThrowable(attachment, ex);
         } finally {
             handlerManager.writeResponse(attachment, cmdReturnObj);
         }
@@ -68,8 +69,10 @@ public class CmdPageDispatcher extends BasePageDispatcher {
         String path = request.getPath();
         CmdMappers.CmdMeta meta = cmdMappers.getCmdMeta(path);
         if (AssertUtil.isNull(meta)) {
-            //处理找不到meta的情况, 1 path是 / 则显示首页，2 path是doc，则显示文档页，3 path是不存在的页，显示404
+            //TODO:处理找不到meta的情况, 1 path是 / 则显示首页，2 path是不存在的页，显示404
+            throw ResourceNotFoundError.INSTANCE;
         }
+
         attachment.setCmdMeta(meta);
         BaseCmd cmd = meta.getCmd();
         Method method = meta.getMethod();
@@ -77,7 +80,7 @@ public class CmdPageDispatcher extends BasePageDispatcher {
             attachment.registerProcessThread();
             return method.invoke(cmd, request, response);
         } finally {
-
+            attachment.unRegisterProcessThread();
         }
     }
 }
