@@ -18,6 +18,7 @@ package cn.wantedonline.puppy.httpserver.component;
 
 import cn.wantedonline.puppy.httpserver.common.ContentType;
 import cn.wantedonline.puppy.httpserver.common.HttpServerConfig;
+import cn.wantedonline.puppy.httpserver.httptools.CookieHelper;
 import cn.wantedonline.puppy.util.AssertUtil;
 import cn.wantedonline.puppy.util.CharsetTools;
 import cn.wantedonline.puppy.util.StringTools;
@@ -72,6 +73,25 @@ public class HttpResponse extends DefaultFullHttpResponse {
      */
     public void addCookie(Cookie cookie) {
         this.cookies.add(cookie);
+    }
+
+    /**
+     * 设置一个永久Cookie
+     * @param key
+     * @param value
+     */
+    public void addCookie(String key, String value) {
+        CookieHelper.addCookie(key, value, this);
+    }
+
+    /**
+     * 设置一个自定义时间的Cookie
+     * @param key
+     * @param value
+     * @param maxAge
+     */
+    public void addCookie(String key, String value, int maxAge) {
+        CookieHelper.addCookie(key, value, maxAge, this);
     }
 
     public boolean isBinaryContent() {

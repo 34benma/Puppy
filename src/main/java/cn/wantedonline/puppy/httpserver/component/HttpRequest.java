@@ -67,6 +67,10 @@ public class HttpRequest extends DefaultFullHttpRequest {
     private Map<String, List<String>> parametersByPost;
     private Map<String, Cookie> cookiesMap;
 
+    private Session session = null;
+
+    private String requestedSessionId = null;
+
     private Charset charset4ContentDecoder = CharsetTools.UTF_8;
     private Charset charset4QueryStringDecoder = CharsetTools.UTF_8;
 
