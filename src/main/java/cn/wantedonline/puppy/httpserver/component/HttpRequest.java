@@ -17,6 +17,7 @@
 package cn.wantedonline.puppy.httpserver.component;
 
 import cn.wantedonline.puppy.exception.IllegalParameterError;
+import cn.wantedonline.puppy.httpserver.component.session.Session;
 import cn.wantedonline.puppy.util.*;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;

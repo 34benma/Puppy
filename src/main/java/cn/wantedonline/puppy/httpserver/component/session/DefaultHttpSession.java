@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-package cn.wantedonline.puppy.httpserver.component;
+package cn.wantedonline.puppy.httpserver.component.session;
 
 import cn.wantedonline.puppy.util.AssertUtil;
 

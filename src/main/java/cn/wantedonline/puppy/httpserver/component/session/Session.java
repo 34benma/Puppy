@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-package cn.wantedonline.puppy.httpserver.component;
+package cn.wantedonline.puppy.httpserver.component.session;
 
 import java.util.Set;
 
@@ -45,7 +45,7 @@ public interface Session {
 
     /**
      * Set the creation time for this session.  This method is called by the
-     * Manager when an existing Session instance is reused.
+     * SessionManager when an existing Session instance is reused.
      *
      * @param time The new creation time
      */

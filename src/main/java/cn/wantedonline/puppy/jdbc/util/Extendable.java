@@ -19,7 +19,7 @@
  *
  * Created on 2007年8月23日, 下午9:28
  *
- * To change this template, choose Tools | Template Manager
+ * To change this template, choose Tools | Template SessionManager
  * and open the template in the editor.
  */
 
