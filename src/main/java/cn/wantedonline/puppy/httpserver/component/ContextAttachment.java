@@ -17,7 +17,12 @@
 package cn.wantedonline.puppy.httpserver.component;
 
 import cn.wantedonline.puppy.httpserver.common.CmdMappers;
+import cn.wantedonline.puppy.httpserver.common.HttpServerConfig;
+import cn.wantedonline.puppy.httpserver.httptools.CookieHelper;
 import cn.wantedonline.puppy.util.AssertUtil;
+import cn.wantedonline.puppy.util.DefaultSessionIdGenerator;
+import cn.wantedonline.puppy.util.SessionIdGenerator;
+import cn.wantedonline.puppy.util.StringTools;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -114,6 +119,18 @@ public class ContextAttachment implements ChannelFutureListener, Comparable<Cont
     public synchronized void registerProcessThread() {
         Thread.interrupted();
         this.processThread = Thread.currentThread();
+    }
+
+    public void writeSessionIdCookie(SessionIdGenerator idGenerator) {
+        String sessionId = null;
+        if (AssertUtil.isNotNull(request) && AssertUtil.isNotNull(response)) {
+            sessionId = request.getRequestedSessionId();
+        }
+        if (StringTools.isEmpty(sessionId)) {
+            sessionId = idGenerator.generateSessionId();
+        }
+        int maxAge = HttpServerConfig.sessionManager.getSessionMaxAliveTime();
+        CookieHelper.addSessionCookie(sessionId, maxAge, response);
     }
 
     public synchronized void unRegisterProcessThread() {

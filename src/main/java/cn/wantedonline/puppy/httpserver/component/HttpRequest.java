@@ -17,7 +17,9 @@
 package cn.wantedonline.puppy.httpserver.component;
 
 import cn.wantedonline.puppy.exception.IllegalParameterError;
+import cn.wantedonline.puppy.httpserver.common.HttpServerConfig;
 import cn.wantedonline.puppy.httpserver.component.session.Session;
+import cn.wantedonline.puppy.httpserver.component.session.SessionManager;
 import cn.wantedonline.puppy.util.*;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -173,12 +175,18 @@ public class HttpRequest extends DefaultFullHttpRequest {
     }
 
     /**
-     * 适配HttpServletRequest
-     * 目前Puppy还没有实现Session的需求
      * @return
      */
-    public HttpSession getSession() {
-        return null;
+    public Session getSession() {
+        return getSession(true);
+    }
+
+    public Session getSession(boolean create) {
+        Session session = doGetSession(create);
+        if (AssertUtil.isNull(session)) {
+            return null;
+        }
+        return session;
     }
 
     /**
@@ -352,6 +360,65 @@ public class HttpRequest extends DefaultFullHttpRequest {
         return parametersByPost;
     }
 
+    private Session doGetSession(boolean create) {
+        if (AssertUtil.isNotNull(session) && !session.isValid()) {
+            session = null;
+        }
+        if (session != null) {
+            return (session);
+        }
+
+        // Return the requested session if it exists and is valid
+        SessionManager manager = HttpServerConfig.sessionManager;
+        requestedSessionId = getRequestedSessionId();
+        if (AssertUtil.isNull(manager))
+        {
+            return (null);      // Sessions are not supported
+        }
+
+        if (AssertUtil.isNotNull(requestedSessionId)) {
+            try {
+                session = manager.findSession(requestedSessionId);
+            } catch (IOException e) {
+                session = null;
+            }
+            if (AssertUtil.isNotNull(session) && !session.isValid()) {
+                session = null;
+            }
+            if (AssertUtil.isNotNull(session)) {
+                session.access();
+                return (session);
+            }
+        }
+
+        // Create a new session if requested and the response is not committed
+        if (!create) {
+            return (null);
+        }
+
+        session = manager.createSession(getRequestedSessionId());
+
+        if (session == null) {
+            return null;
+        }
+
+        session.access();
+        return session;
+    }
+
+    public String getRequestedSessionId() {
+        if (StringTools.isNotEmpty(requestedSessionId)) {
+            return requestedSessionId;
+        }
+
+        String sessionId = getCookieValue(HttpServerConfig.SESSIONID_PARAMERTER);
+        if (StringTools.isEmpty(sessionId)) {
+            sessionId = getParameter(HttpServerConfig.SESSIONID_PARAMERTER);
+        }
+
+        return StringTools.isEmpty(sessionId) ? null : sessionId;
+    }
+
     public String getParameter(String key) {
         if (StringTools.isEmpty(key)) {
             throw new IllegalArgumentException("key is empty:[" + key + "]");
@@ -474,11 +541,12 @@ public class HttpRequest extends DefaultFullHttpRequest {
                     for (Cookie cookie : cookies) {
                         cookiesMap.put(cookie.name(), cookie);
                     }
-                    return cookiesMap;
                 }
+            } else {
+                return Collections.EMPTY_MAP;
             }
         }
-        return Collections.EMPTY_MAP;
+        return cookiesMap;
     }
 
     public Cookie getCookie(String name) {

@@ -486,6 +486,7 @@ public abstract class SessionManagerBase implements SessionManager {
             sessionCreationTiming.add(timing);
             sessionCreationTiming.poll();
         }
+        sessions.put(sessionId, session);
         return (session);
 
     }

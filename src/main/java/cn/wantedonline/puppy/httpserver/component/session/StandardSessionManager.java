@@ -37,6 +37,14 @@ import java.io.ObjectInputStream;
  */
 public class StandardSessionManager extends SessionManagerBase {
 
+    private static StandardSessionManager instance = new StandardSessionManager();
+
+    private StandardSessionManager() {}
+
+    public static StandardSessionManager getInstance() {
+        return instance;
+    }
+
     private final Logger log = Log.getLogger(); // must not be static
 
     /**

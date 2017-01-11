@@ -16,6 +16,7 @@
 
 package cn.wantedonline.puppy.httpserver.httptools;
 
+import cn.wantedonline.puppy.httpserver.common.HttpServerConfig;
 import cn.wantedonline.puppy.httpserver.component.HttpResponse;
 import cn.wantedonline.puppy.spring.annotation.Config;
 import io.netty.handler.codec.http.cookie.Cookie;
@@ -46,6 +47,14 @@ public final class CookieHelper {
 
     public static void addCookie(String key, String value, int maxAge, HttpResponse response) {
         Cookie cookie = new DefaultCookie(key, value);
+        cookie.setDomain(domain);
+        cookie.setPath("/");
+        cookie.setMaxAge(maxAge);
+        response.addCookie(cookie);
+    }
+
+    public static void addSessionCookie(String sessionId, int maxAge, HttpResponse response) {
+        Cookie cookie = new DefaultCookie(HttpServerConfig.SESSIONID_PARAMERTER, sessionId);
         cookie.setDomain(domain);
         cookie.setPath("/");
         cookie.setMaxAge(maxAge);

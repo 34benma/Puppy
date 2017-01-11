@@ -113,6 +113,10 @@ public abstract class BasePageDispatcher extends AbstractPageDispatcher {
         HttpResponse response = new HttpResponse(attachment);
         attachment.markWriteBegin();
         attachment.registerNewMessage(response);
+        //重写SessionId cookie
+        if (config.getOpenSession()) {
+            attachment.writeSessionIdCookie(HttpServerConfig.sessionIdGenerator);
+        }
         //次数统计
         config.countStat.requestReceived(ctx, attachment);
         //时间统计

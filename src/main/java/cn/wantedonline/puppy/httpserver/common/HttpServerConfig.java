@@ -20,12 +20,17 @@ import cn.wantedonline.puppy.httpserver.component.AbstractPageDispatcher;
 import cn.wantedonline.puppy.httpserver.component.AccessLogger;
 import cn.wantedonline.puppy.httpserver.component.HttpRequestDecoder;
 import cn.wantedonline.puppy.httpserver.component.HttpResponseEncoder;
+import cn.wantedonline.puppy.httpserver.component.session.SessionManager;
+import cn.wantedonline.puppy.httpserver.component.session.SessionManagerBase;
+import cn.wantedonline.puppy.httpserver.component.session.StandardSessionManager;
 import cn.wantedonline.puppy.httpserver.stat.CountStat;
 import cn.wantedonline.puppy.httpserver.stat.StreamStat;
 import cn.wantedonline.puppy.httpserver.stat.TimeSpanStat;
 import cn.wantedonline.puppy.spring.annotation.AfterConfig;
 import cn.wantedonline.puppy.spring.annotation.Config;
+import cn.wantedonline.puppy.util.DefaultSessionIdGenerator;
 import cn.wantedonline.puppy.util.Log;
+import cn.wantedonline.puppy.util.SessionIdGenerator;
 import cn.wantedonline.puppy.util.concurrent.NamedThreadFactory;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -50,7 +55,10 @@ public final class HttpServerConfig {
     private Logger log = Log.getLogger(HttpServerConfig.class);
 
     public static final int PROCESSOR_NUM = Runtime.getRuntime().availableProcessors();
+
     private static ContentType respInnerContentType = ContentType.json;
+
+    public static final String SESSIONID_PARAMERTER = "sessionId";
 
     @Config(resetable = true)
     private int listen_port = 8080;
@@ -74,6 +82,20 @@ public final class HttpServerConfig {
     private String respDefaultContentType = "json";
     @Config(resetable = true)
     private boolean openLogHandler;
+    //===== add Session on V0.6.3  2017.01.11
+    @Config(resetable = true)
+    private boolean openSession = false;
+    @Config(resetable = true)
+    private String sessionStore = null;
+    @Config(resetable = true)
+    private int sessionMaxActiveTime = 1800;
+    @Config(resetable = true)
+    private int sessionMaxCount = 10000;
+
+    public static SessionManagerBase sessionManager = null;
+
+    public static SessionIdGenerator sessionIdGenerator = null;
+    //===== end Session
 
     @Autowired
     private AbstractPageDispatcher dispatcher;
@@ -169,6 +191,10 @@ public final class HttpServerConfig {
         bossEventLoopGroup.shutdownGracefully();
     }
 
+    public boolean getOpenSession() {
+        return openSession;
+    }
+
     public int getWorkerCount() {
         return workerEventLoopGroup.executorCount();
     }
@@ -186,4 +212,19 @@ public final class HttpServerConfig {
         }
         log.info("set response inner contentType is: {}", respInnerContentType);
     }
+
+    @AfterConfig
+    public void initSessionManager() {
+        if (openSession) {
+            if ("jvm".equalsIgnoreCase(sessionStore)) {
+                sessionIdGenerator = new DefaultSessionIdGenerator();
+                sessionManager = StandardSessionManager.getInstance();
+                sessionManager.setSessionIdGenerator(sessionIdGenerator);
+                sessionManager.setMaxActive(sessionMaxCount);
+                sessionManager.setSessionMaxAliveTime(sessionMaxActiveTime);
+                sessionManager.backgroundProcess();
+            }
+        }
+    }
+
 }

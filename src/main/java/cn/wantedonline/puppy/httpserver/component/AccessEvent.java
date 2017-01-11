@@ -19,6 +19,7 @@ import ch.qos.logback.access.AccessConstants;
 import ch.qos.logback.access.pattern.AccessConverter;
 import ch.qos.logback.access.spi.IAccessEvent;
 import ch.qos.logback.access.spi.ServerAdapter;
+import cn.wantedonline.puppy.httpserver.component.session.Session;
 import cn.wantedonline.puppy.util.AssertUtil;
 
 import javax.servlet.http.HttpServletRequest;
@@ -258,7 +259,7 @@ public class AccessEvent implements Serializable, IAccessEvent {
     public String getSessionID() {
         if (sessionID == null) {
             if (httpRequest != null) {
-                final HttpSession session = httpRequest.getSession();
+                final Session session = httpRequest.getSession();
                 if (session != null) {
                     sessionID = session.getId();
                 }

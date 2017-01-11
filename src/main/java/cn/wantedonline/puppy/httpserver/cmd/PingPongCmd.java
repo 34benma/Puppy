@@ -23,10 +23,12 @@ import cn.wantedonline.puppy.httpserver.annotation.CmdReturn;
 import cn.wantedonline.puppy.httpserver.common.BaseCmd;
 import cn.wantedonline.puppy.httpserver.component.HttpRequest;
 import cn.wantedonline.puppy.httpserver.component.HttpResponse;
+import cn.wantedonline.puppy.httpserver.component.session.Session;
 import cn.wantedonline.puppy.httpserver.httptools.JsonUtil;
 import cn.wantedonline.puppy.httpserver.httptools.RtnConstants;
 import cn.wantedonline.puppy.httpserver.stat.NioWorkerStat;
 import cn.wantedonline.puppy.httpserver.system.SystemInfo;
+import cn.wantedonline.puppy.util.AssertUtil;
 import io.netty.handler.codec.http.cookie.DefaultCookie;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -48,8 +50,9 @@ public class PingPongCmd implements BaseCmd {
     })
     @CmdAuthor("wangcheng")
     public Object pingMyRequest(HttpRequest request, HttpResponse response) throws Exception {
-        response.addCookie(new DefaultCookie("sessionId","122334555"));
-        return JsonUtil.getRtnAndDataJsonObject(RtnConstants.INTERNAL_SERVER_ERROR,JsonUtil.buildMap("hello","wangcheng"));
+        Session session = request.getSession(true);
+        session.setAttribute("hello","this is from session");
+        return JsonUtil.getOnlyOKJSON();
     }
 
     @Cmd("打印Cookie信息")
@@ -57,7 +60,9 @@ public class PingPongCmd implements BaseCmd {
             ""
     })
     @CmdAuthor("wangcheng")
-    public Object printCookie(HttpRequest request, HttpResponse response) throws Exception {
-        return JsonUtil.getRtnAndDataJsonObject(RtnConstants.OK, request.getCookieValue("sessionId"));
+    public Object printSessionValue(HttpRequest request, HttpResponse response) throws Exception {
+        Session session = request.getSession(false);
+
+        return JsonUtil.getRtnAndDataJsonObject(RtnConstants.OK, session.getAttribute("hello"));
     }
 }
