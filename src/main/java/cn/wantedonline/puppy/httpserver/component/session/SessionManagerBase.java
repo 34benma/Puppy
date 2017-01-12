@@ -19,13 +19,16 @@ package cn.wantedonline.puppy.httpserver.component.session;
 
 
 import cn.wantedonline.puppy.exception.TooManyActiveSessionsException;
+import cn.wantedonline.puppy.spring.annotation.Config;
 import cn.wantedonline.puppy.util.*;
+import cn.wantedonline.puppy.util.concurrent.ConcurrentUtil;
 import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 
@@ -149,6 +152,8 @@ public abstract class SessionManagerBase implements SessionManager {
      * checks will occur).
      */
     protected int processExpiresFrequency = 6;
+
+    private volatile boolean startedSessionGC = false;
 
     // ------------------------------------------------------------- Properties
 
@@ -354,6 +359,22 @@ public abstract class SessionManagerBase implements SessionManager {
     }
     // --------------------------------------------------------- Public Methods
 
+    public void startSessionGC(int initialDelay, int period) {
+        if (startedSessionGC) {
+            return;
+        }
+
+        startedSessionGC = true;
+
+        ConcurrentUtil.getDaemonExecutor().scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                log.info("start run session GC, before GC, session size is {}", sessions.size());
+                backgroundProcess();
+                log.info("end run session GC, after GC, session size is {}", sessions.size());
+            }
+        }, initialDelay, period, TimeUnit.SECONDS);
+    }
 
     /**
      * Implements the Manager interface, direct call to processExpires

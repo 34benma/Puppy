@@ -31,6 +31,7 @@ import cn.wantedonline.puppy.spring.annotation.Config;
 import cn.wantedonline.puppy.util.DefaultSessionIdGenerator;
 import cn.wantedonline.puppy.util.Log;
 import cn.wantedonline.puppy.util.SessionIdGenerator;
+import cn.wantedonline.puppy.util.concurrent.ConcurrentUtil;
 import cn.wantedonline.puppy.util.concurrent.NamedThreadFactory;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -91,6 +92,12 @@ public final class HttpServerConfig {
     private int sessionMaxActiveTime = 1800;
     @Config(resetable = true)
     private int sessionMaxCount = 10000;
+    @Config(resetable = true)
+    private int sessionProcessExpiresFrequency = 5;
+    @Config(resetable = true)
+    private int sessionGCPeriod = 10;
+    @Config(resetable = true)
+    private int sessionGCInitialDelay = 10;
 
     public static SessionManagerBase sessionManager = null;
 
@@ -222,9 +229,12 @@ public final class HttpServerConfig {
                 sessionManager.setSessionIdGenerator(sessionIdGenerator);
                 sessionManager.setMaxActive(sessionMaxCount);
                 sessionManager.setSessionMaxAliveTime(sessionMaxActiveTime);
-                sessionManager.backgroundProcess();
+                sessionManager.setProcessExpiresFrequency(sessionProcessExpiresFrequency);
+                sessionManager.startSessionGC(sessionGCInitialDelay, sessionGCPeriod);
             }
         }
     }
+
+
 
 }
