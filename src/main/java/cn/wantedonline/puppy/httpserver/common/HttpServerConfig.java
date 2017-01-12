@@ -100,8 +100,6 @@ public final class HttpServerConfig {
     private int sessionGCInitialDelay = 10;
 
     public static SessionManagerBase sessionManager = null;
-
-    public static SessionIdGenerator sessionIdGenerator = null;
     //===== end Session
 
     @Autowired
@@ -224,9 +222,7 @@ public final class HttpServerConfig {
     public void initSessionManager() {
         if (openSession) {
             if ("jvm".equalsIgnoreCase(sessionStore)) {
-                sessionIdGenerator = new DefaultSessionIdGenerator();
                 sessionManager = StandardSessionManager.getInstance();
-                sessionManager.setSessionIdGenerator(sessionIdGenerator);
                 sessionManager.setMaxActive(sessionMaxCount);
                 sessionManager.setSessionMaxAliveTime(sessionMaxActiveTime);
                 sessionManager.setProcessExpiresFrequency(sessionProcessExpiresFrequency);

@@ -115,7 +115,7 @@ public abstract class BasePageDispatcher extends AbstractPageDispatcher {
         attachment.registerNewMessage(response);
         //重写SessionId cookie
         if (config.getOpenSession()) {
-            attachment.writeSessionIdCookie(HttpServerConfig.sessionIdGenerator);
+            attachment.writeSessionIdCookie(HttpServerConfig.sessionManager.getSessionIdGenerator());
         }
         //次数统计
         config.countStat.requestReceived(ctx, attachment);

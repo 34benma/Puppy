@@ -39,7 +39,9 @@ public class StandardSessionManager extends SessionManagerBase {
 
     private static StandardSessionManager instance = new StandardSessionManager();
 
-    private StandardSessionManager() {}
+    private StandardSessionManager() {
+        startInternal();
+    }
 
     public static StandardSessionManager getInstance() {
         return instance;
@@ -344,15 +346,7 @@ public class StandardSessionManager extends SessionManagerBase {
      */
     @Override
     protected synchronized void startInternal() {
-        /*
         super.startInternal();
-        try {
-            load();
-        } catch (Throwable t) {
-            ExceptionUtils.handleThrowable(t);
-            log.error(sm.getString("standardManager.managerLoad"), t);
-        }
-        */
     }
 
 
