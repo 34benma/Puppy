@@ -54,7 +54,7 @@ public abstract class SessionManagerBase implements SessionManager {
      * The default maximum inactive interval for Sessions created by
      * this Manager.
      */
-    protected int maxInactiveInterval = 30 * 60;
+    protected int maxInactiveInterval = 30*60;
 
     /**
      * The Java class name of the secure random number generator class to be
@@ -369,9 +369,7 @@ public abstract class SessionManagerBase implements SessionManager {
         ConcurrentUtil.getDaemonExecutor().scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                log.info("start run session GC, before GC, session size is {}", sessions.size());
                 backgroundProcess();
-                log.info("end run session GC, after GC, session size is {}", sessions.size());
             }
         }, initialDelay, period, TimeUnit.SECONDS);
     }

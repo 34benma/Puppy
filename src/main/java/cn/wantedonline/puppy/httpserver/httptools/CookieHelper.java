@@ -31,7 +31,7 @@ import io.netty.handler.codec.http.cookie.DefaultCookie;
  * @Since V0.6.2 on 2017/01/05
  */
 public final class CookieHelper {
-    @Config("localhost")
+    @Config(resetable = true)
     private static String domain = "wantedonline.cn";
     private CookieHelper() {}
 
