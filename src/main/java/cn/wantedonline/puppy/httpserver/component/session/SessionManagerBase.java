@@ -398,6 +398,8 @@ public abstract class SessionManagerBase implements SessionManager {
         for (int i = 0; i < sessions.length; i++) {
             if (sessions[i]!=null && !sessions[i].isValid()) {
                 expireHere++;
+                //session过期之后，应该删除session对象
+                remove(sessions[i]);
             }
         }
         long timeEnd = System.currentTimeMillis();

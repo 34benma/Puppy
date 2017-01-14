@@ -91,6 +91,8 @@ public final class HttpServerConfig {
     @Config(resetable = true)
     private int sessionMaxActiveTime = 1800;
     @Config(resetable = true)
+    private int sessionMaxInActiveTime = 1800;
+    @Config(resetable = true)
     private int sessionMaxCount = 10000;
     @Config(resetable = true)
     private int sessionProcessExpiresFrequency = 5;
@@ -225,6 +227,7 @@ public final class HttpServerConfig {
                 sessionManager = StandardSessionManager.getInstance();
                 sessionManager.setMaxActive(sessionMaxCount);
                 sessionManager.setSessionMaxAliveTime(sessionMaxActiveTime);
+                sessionManager.setMaxInactiveInterval(sessionMaxInActiveTime);
                 sessionManager.setProcessExpiresFrequency(sessionProcessExpiresFrequency);
                 sessionManager.startSessionGC(sessionGCInitialDelay, sessionGCPeriod);
             }
