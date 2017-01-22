@@ -18,10 +18,9 @@ package cn.wantedonline.puppy.httpserver.component;
 
 import cn.wantedonline.puppy.httpserver.common.HttpServerConfig;
 import cn.wantedonline.puppy.util.AssertUtil;
+import cn.wantedonline.puppy.httpserver.component.HttpObjectAggregator.AggregatedFullHttpMessage;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.*;
 import io.netty.util.AttributeKey;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -82,21 +81,16 @@ public abstract class BasePageDispatcher extends AbstractPageDispatcher {
         if (AssertUtil.isNotNull(msg)) {
             ContextAttachment attach = getAttach(ctx);
             try {
-                if (msg instanceof HttpRequest) {
-                    HttpRequest request = (HttpRequest) msg;
-                    if (HttpHeaders.is100ContinueExpected(request)) {
-                        //处理100 Continue http://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.2.3
-                        ctx.writeAndFlush(new HttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE));
-                    }
+                if (msg instanceof AggregatedFullHttpMessage) {
+                    AggregatedFullHttpMessage aggregatedFullHttpMessage = (AggregatedFullHttpMessage)msg;
+                    HttpRequest request = (HttpRequest) aggregatedFullHttpMessage.message;
                     request.setRemoteAddress(ctx.channel().remoteAddress());
                     request.setLocalAddress(ctx.channel().localAddress());
                     attach.registerNewMessage(request);
                     requestReceived(ctx, attach);
                 }
-
-                if (msg instanceof HttpContent) {
-
-                }
+            } catch (Exception e) {
+                e.printStackTrace();
             } finally {
                 ChannelFuture future = ctx.writeAndFlush(attach.getResponse().copy());
                 attach.markWriteEnd();

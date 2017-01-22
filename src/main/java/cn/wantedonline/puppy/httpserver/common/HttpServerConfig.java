@@ -16,11 +16,7 @@
 
 package cn.wantedonline.puppy.httpserver.common;
 
-import cn.wantedonline.puppy.httpserver.component.AbstractPageDispatcher;
-import cn.wantedonline.puppy.httpserver.component.AccessLogger;
-import cn.wantedonline.puppy.httpserver.component.HttpRequestDecoder;
-import cn.wantedonline.puppy.httpserver.component.HttpResponseEncoder;
-import cn.wantedonline.puppy.httpserver.component.session.SessionManager;
+import cn.wantedonline.puppy.httpserver.component.*;
 import cn.wantedonline.puppy.httpserver.component.session.SessionManagerBase;
 import cn.wantedonline.puppy.httpserver.component.session.StandardSessionManager;
 import cn.wantedonline.puppy.httpserver.stat.CountStat;
@@ -28,10 +24,7 @@ import cn.wantedonline.puppy.httpserver.stat.StreamStat;
 import cn.wantedonline.puppy.httpserver.stat.TimeSpanStat;
 import cn.wantedonline.puppy.spring.annotation.AfterConfig;
 import cn.wantedonline.puppy.spring.annotation.Config;
-import cn.wantedonline.puppy.util.DefaultSessionIdGenerator;
 import cn.wantedonline.puppy.util.Log;
-import cn.wantedonline.puppy.util.SessionIdGenerator;
-import cn.wantedonline.puppy.util.concurrent.ConcurrentUtil;
 import cn.wantedonline.puppy.util.concurrent.NamedThreadFactory;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -39,6 +32,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -82,7 +76,7 @@ public final class HttpServerConfig {
     @Config(resetable = true)
     private String respDefaultContentType = "json";
     @Config(resetable = true)
-    private boolean openLogHandler;
+    private boolean openLogHandler = false;
     //===== add Session on V0.6.3  2017.01.11
     @Config(resetable = true)
     private boolean openSession = false;
@@ -188,7 +182,8 @@ public final class HttpServerConfig {
             }
             cp.addLast("puppy_http_request_decoder",new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
               .addLast("puppy_http_response_encoder", new HttpResponseEncoder())
-//              .addLast("aggregator",new HttpObjectAggregator(maxContentLength))
+              .addLast("aggregator",new HttpObjectAggregator(maxContentLength))
+              .addLast("puppy_http_chunked", new ChunkedWriteHandler())
               .addLast("pageDispatcher", dispatcher);
         }
     }
