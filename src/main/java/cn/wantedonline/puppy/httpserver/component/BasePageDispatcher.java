@@ -21,6 +21,7 @@ import cn.wantedonline.puppy.util.AssertUtil;
 import cn.wantedonline.puppy.httpserver.component.HttpObjectAggregator.AggregatedFullHttpMessage;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.HttpMessage;
 import io.netty.util.AttributeKey;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -81,9 +82,17 @@ public abstract class BasePageDispatcher extends AbstractPageDispatcher {
         if (AssertUtil.isNotNull(msg)) {
             ContextAttachment attach = getAttach(ctx);
             try {
-                if (msg instanceof AggregatedFullHttpMessage) {
-                    AggregatedFullHttpMessage aggregatedFullHttpMessage = (AggregatedFullHttpMessage)msg;
-                    HttpRequest request = (HttpRequest) aggregatedFullHttpMessage.message;
+                if (msg instanceof HttpMessage) {
+                    HttpRequest request = null;
+                    if (msg instanceof AggregatedFullHttpMessage) {
+                        AggregatedFullHttpMessage aggregatedFullHttpMessage = (AggregatedFullHttpMessage)msg;
+                        request = (HttpRequest) aggregatedFullHttpMessage.message;
+                        //内容在这里写进去
+                        request.content().writeBytes(aggregatedFullHttpMessage.content().duplicate().retain());
+
+                    } else {
+                        request = (HttpRequest)msg;
+                    }
                     request.setRemoteAddress(ctx.channel().remoteAddress());
                     request.setLocalAddress(ctx.channel().localAddress());
                     attach.registerNewMessage(request);
