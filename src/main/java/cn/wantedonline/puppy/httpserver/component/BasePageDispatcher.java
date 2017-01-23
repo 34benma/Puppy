@@ -87,9 +87,6 @@ public abstract class BasePageDispatcher extends AbstractPageDispatcher {
                     if (msg instanceof AggregatedFullHttpMessage) {
                         AggregatedFullHttpMessage aggregatedFullHttpMessage = (AggregatedFullHttpMessage)msg;
                         request = (HttpRequest) aggregatedFullHttpMessage.message;
-                        //内容在这里写进去
-                        request.content().writeBytes(aggregatedFullHttpMessage.content().duplicate().retain());
-
                     } else {
                         request = (HttpRequest)msg;
                     }
