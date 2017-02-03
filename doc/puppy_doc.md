@@ -116,7 +116,64 @@ common包：一些公用逻辑或者公共继承类会放这里
 
 ### 2.2 如何编写Cmd接口
 
+Cmd接口层是上层请求的入口和逻辑处理结束返回数据模型的出口。在项目工程里，一般专门建一个cmd包存放Cmd类。
+所有Cmd类必须实现BaseCmd这个标记接口。
 
+如果我们想要实现一个公共方法给所有Cmd类用，可以写一个公共的Cmd，比如CommonCmd，这个Cmd实现BaseCmd，然后全部Cmd类继承CommonCmd即可。
+
+```
+public class CommonCmd implements BaseCmd {
+    //common method...
+}
+
+```
+
+一个Cmd类，必须注入到Spring容器。Puppy会从Spring容器中找到该Cmd类，解析该Cmd类，放到一个映射关系表中。因此，一个基本的Cmd类必须是如下样子：
+
+```
+@Service
+@CmdDesc("描述该Cmd类的作用,文档解析器会自动解析该注解形成文档")
+public DemoCmd implements BaseCmd {
+
+}
+
+```
+
+这里出现了一个新注解@CmdDesc, 这是一个文档注解，用于描述该Cmd类的作用。可以省略。但一般建议写上，这样，这个Cmd类做什么用就可以从文档中看
+出来。
+
+Cmd类的方法承担一个功能。比如有一个注册功能，我们会这样写这个方法,放在一个跟用户注册登录相关的Cmd类里，比如UserLoginCmd
+
+方法签名如下：
+
+```
+public Object registerNewUser(HttpRequest request, HttpResponse response) throws Exception {
+    // your logic code...
+}
+
+```
+注意，方法签名里必须是含有且只能含有request和response，并且必须是Puppy的HttpRequest和HttpResponse。返回值是一个Object，一般是一个JSON
+对象。
+
+可以通过加一下Puppy的注解来形成文档。
+
+@Cmd("方法功能说明") 这个注解用于修饰方法，可以说明该方法的作用
+@CmdAuthor("作者签名") 修饰方法，标识该方法的作者。
+@CmdParams() 修饰方法，这里面放@CmdParam，用于说明需要通过request携带的参数。
+@CmdSession() 修饰方法，用于说明这个方法是否要求登录态。
+@CmdReturn() 修饰方法，用于说明这个方法的返回数据说明。
+
+最终，一个样例的Cmd类如下：
+
+![](http://ojyf3pwsm.bkt.clouddn.com/6.png)
+
+如果启动服务器，输入 localhost:8080/doc
+则或生成这样的文档：
+
+![](http://ojyf3pwsm.bkt.clouddn.com/7.png)
+
+关于Cmd的返回值，我们一般是返回一个JSON对象，这里可以用cn.wantedonline.puppy.httpserver.httptools.JsonUtil这个类来JSON话对象。
+该类包装了一些返回格式给上层使用。
 
 ### 2.3 如何编写Dao层
 
