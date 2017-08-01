@@ -16,6 +16,8 @@
 
 package cn.wantedonline.puppy.util;
 
+import org.slf4j.Logger;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -32,8 +34,7 @@ import java.util.Map;
 public class CloseableHelper {
 
     private static final Map<Class<?>, Method> closeMethodCache = new HashMap<Class<?>, Method>(2);
-    //TODO:日志组件待完善
-//    private static final Logger log = Log.getLogger();
+    private static final Logger log = Log.getLogger();
 
     /**
      * 关闭对象，关闭前会判断是否为null，可能抛出异常
@@ -92,7 +93,7 @@ public class CloseableHelper {
         try {
             close(c);
         } catch (Throwable e) {
-//            log.info("", e);
+            log.info("", e);
         }
     }
 
@@ -105,7 +106,7 @@ public class CloseableHelper {
         try {
             close(c);
         } catch (Throwable e) {
-//            log.info("", e);
+            log.info("", e);
         }
     }
 
@@ -118,34 +119,34 @@ public class CloseableHelper {
         try {
             close(c);
         } catch (Throwable e) {
-//            log.info("", e);
+            log.info("", e);
         }
     }
 
     public static void closeAndLog(Closeable c) {
         try {
-//            log.info("close Closeable:{}", c);
+            log.info("close Closeable:{}", c);
             close(c);
         } catch (Throwable e) {
-//            log.info("", e);
+            log.info("", e);
         }
     }
 
     public static void closeAndLog(Object c) {
         try {
-//            log.info("close Object:{}", c);
+            log.info("close Object:{}", c);
             close(c);
         } catch (Throwable e) {
-//            log.info("", e);
+            log.info("", e);
         }
     }
 
     public static void closeAndLog(Socket c) {
         try {
-//            log.info("close Socket:{}", c);
+            log.info("close Socket:{}", c);
             close(c);
         } catch (Throwable e) {
-//            log.info("", e);
+            log.info("", e);
         }
     }
 
